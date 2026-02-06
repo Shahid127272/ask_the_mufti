@@ -1,0 +1,41 @@
+name: ask_the_mufti
+description: "Ask The Mufti - Beginner Version"
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.9.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+  firebase_core: ^4.4.0
+  cloud_firestore: ^6.1.2
+  firebase_auth: ^6.1.4
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^5.0.0
+  flutter_launcher_icons: ^0.13.1
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/icons/
+    - assets/images/
+    - assets/fonts/
+
+# ===============================
+# APP ICON CONFIG (ROOT LEVEL)
+# ===============================
+flutter_icons:
+  android: true
+  ios: false
+  remove_alpha_ios: true
+  image_path: assets/icons/app_icon.png
