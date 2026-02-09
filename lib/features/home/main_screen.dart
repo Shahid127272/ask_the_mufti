@@ -17,7 +17,7 @@ class _MainScreenState extends State<MainScreen> {
 
   // ❗ const HATA diya
   final _pages = [
-    const FeedsScreen(),
+    FeedsScreen(),
     const CategoriesScreen(),
     const AskQuestionScreen(),
     const TeamScreen(),

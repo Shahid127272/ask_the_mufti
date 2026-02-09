@@ -24,10 +24,27 @@ class QuestionModel {
   factory QuestionModel.fromFirestore(
       DocumentSnapshot<Map<String, dynamic>> doc,
       ) {
-    final data = doc.data()!;
+    final data = doc.data();
+
+    // 🛡️ SAFETY GUARD
+    if (data == null) {
+      return QuestionModel(
+        id: doc.id,
+        questionText: '',
+        status: 'pending',
+        askedBy: '',
+        createdAt: Timestamp.now(),
+      );
+    }
+
     return QuestionModel(
       id: doc.id,
-      questionText: data['questionText'] ?? '',
+
+      // ✅ NEW + OLD SUPPORT
+      questionText: data['questionText'] ??
+          data['question'] ?? // 🔥 old documents support
+          '',
+
       status: data['status'] ?? 'pending',
       askedBy: data['askedBy'] ?? '',
       category: data['category'],

@@ -1,89 +1,88 @@
 import 'package:flutter/material.dart';
+
 import '../../models/question_model.dart';
 import '../../services/questions_firestore_service.dart';
-import '../answer_detail/answer_detail_screen.dart';
+import 'answer_question_screen.dart';
 
 class PendingQuestionsScreen extends StatelessWidget {
-  PendingQuestionsScreen({super.key});
-
-  final QuestionsFirestoreService _service =
-  QuestionsFirestoreService();
+  const PendingQuestionsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final service = QuestionsFirestoreService();
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Pending Questions'),
       ),
-      body: SafeArea(
-        child: StreamBuilder<List<QuestionModel>>(
-          stream: _service.streamPendingQuestions(),
-          builder: (context, snapshot) {
-            // 🔴 Error handling
-            if (snapshot.hasError) {
-              return const Center(
-                child: Text('Something went wrong'),
-              );
-            }
+      body: StreamBuilder<List<QuestionModel>>(
+        stream: service.streamPendingQuestions(),
+        builder: (context, snapshot) {
+          // ⏳ Loading
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-            // ⏳ Loading
-            if (snapshot.connectionState ==
-                ConnectionState.waiting) {
-              return const Center(
-                child: CircularProgressIndicator(),
-              );
-            }
-
-            // 📭 Empty state
-            if (!snapshot.hasData ||
-                snapshot.data!.isEmpty) {
-              return const Center(
-                child: Text('No pending questions'),
-              );
-            }
-
-            final questions = snapshot.data!;
-
-            return ListView.builder(
-              itemCount: questions.length,
-              itemBuilder: (context, index) {
-                final q = questions[index];
-
-                return Card(
-                  margin: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  child: ListTile(
-                    title: Text(
-                      q.questionText, // ✅ FIXED
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    subtitle: Text(
-                      '${q.category ?? 'Other'}'
-                          '${q.subCategory != null ? ' • ${q.subCategory}' : ''}',
-                    ),
-                    trailing: const Icon(
-                      Icons.arrow_forward_ios,
-                      size: 16,
-                    ),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => AnswerDetailScreen(
-                            question: q,
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                );
-              },
+          // ❌ Error
+          if (snapshot.hasError) {
+            debugPrint(snapshot.error.toString());
+            return const Center(
+              child: Text('Unable to load questions'),
             );
-          },
-        ),
+          }
+
+          // 📭 Empty
+          if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return const Center(
+              child: Text(
+                'No pending questions',
+                style: TextStyle(fontSize: 16),
+              ),
+            );
+          }
+
+          final questions = snapshot.data!;
+
+          return ListView.separated(
+            padding: const EdgeInsets.all(12),
+            itemCount: questions.length,
+            separatorBuilder: (_, __) => const Divider(),
+            itemBuilder: (context, index) {
+              final q = questions[index];
+
+              return ListTile(
+                title: Text(
+                  q.questionText,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                subtitle: Text(
+                  q.category ?? 'Uncategorized',
+                  style: const TextStyle(fontSize: 12),
+                ),
+                trailing: const Icon(
+                  Icons.arrow_forward_ios,
+                  size: 16,
+                ),
+
+                // ✅ Pending → Answer screen (REAL FLOW)
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => AnswerQuestionScreen(
+                        question: q,
+                      ),
+                    ),
+                  );
+                },
+              );
+            },
+          );
+        },
       ),
     );
   }

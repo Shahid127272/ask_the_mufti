@@ -2,7 +2,7 @@ name: ask_the_mufti
 description: "Ask The Mufti - Beginner Version"
 publish_to: 'none'
 
-version: 1.0.0+1
+version: 1.0.1+2
 
 environment:
   sdk: ^3.9.2
@@ -12,9 +12,20 @@ dependencies:
     sdk: flutter
 
   cupertino_icons: ^1.0.8
+
+  # 🔥 Firebase Core
   firebase_core: ^4.4.0
   cloud_firestore: ^6.1.2
   firebase_auth: ^6.1.4
+
+  # 🔑 Google Sign-In
+  google_sign_in: ^6.2.1
+
+  # 🖼 Image Picker
+  image_picker: ^1.0.7
+
+  # 📅 Date Formatting (AnswerDetailScreen)
+  intl: ^0.19.0
 
 dev_dependencies:
   flutter_test:
@@ -32,7 +43,7 @@ flutter:
     - assets/fonts/
 
 # ===============================
-# APP ICON CONFIG (ROOT LEVEL)
+# APP ICON CONFIG
 # ===============================
 flutter_icons:
   android: true

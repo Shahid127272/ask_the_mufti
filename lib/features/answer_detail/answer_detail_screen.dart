@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import '../../models/question_model.dart';
-import '../../services/questions_firestore_service.dart';
+import 'package:intl/intl.dart';
 
-class AnswerDetailScreen extends StatefulWidget {
+import '../../models/question_model.dart';
+
+class AnswerDetailScreen extends StatelessWidget {
   final QuestionModel question;
 
   const AnswerDetailScreen({
@@ -11,93 +12,51 @@ class AnswerDetailScreen extends StatefulWidget {
   });
 
   @override
-  State<AnswerDetailScreen> createState() => _AnswerDetailScreenState();
-}
-
-class _AnswerDetailScreenState extends State<AnswerDetailScreen> {
-  final _answerController = TextEditingController();
-  final _service = QuestionsFirestoreService();
-  bool _publish = false;
-  bool _loading = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _answerController.text = widget.question.answer ?? '';
-  }
-
-  Future<void> _submit() async {
-    setState(() => _loading = true);
-
-    await _service.updateAnswer(
-      questionId: widget.question.id,
-      answer: _answerController.text.trim(),
-      publish: _publish,
-    );
-
-    if (!mounted) return;
-
-    setState(() => _loading = false);
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Answer saved')),
-    );
-
-    Navigator.pop(context);
-  }
-
-  @override
-  void dispose() {
-    _answerController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final answer = question.answer as Map<String, dynamic>?;
+
+    final answerText = answer?['text'] ?? '';
+    final answeredAt = answer?['answeredAt'];
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Answer Question')),
+      appBar: AppBar(
+        title: const Text('Answer'),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16),
-        child: Column(
+        child: answer == null
+            ? const Center(child: Text('Answer not available'))
+            : Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            /// ❓ Question
             Text(
-              widget.question.questionText, // ✅ UPDATED
+              question.questionText,
               style: const TextStyle(
                 fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            TextField(
-              controller: _answerController,
-              maxLines: 5,
-              decoration: const InputDecoration(
-                labelText: 'Answer',
-                border: OutlineInputBorder(),
+                fontWeight: FontWeight.w600,
               ),
             ),
 
-            const SizedBox(height: 12),
+            const Divider(height: 32),
 
-            SwitchListTile(
-              title: const Text('Publish answer'),
-              value: _publish,
-              onChanged: (v) => setState(() => _publish = v),
+            /// ✅ Answer
+            Text(
+              answerText,
+              style: const TextStyle(fontSize: 14),
             ),
 
-            const Spacer(),
+            const SizedBox(height: 24),
 
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _loading ? null : _submit,
-                child: _loading
-                    ? const CircularProgressIndicator()
-                    : const Text('Save Answer'),
+            /// 🕒 Date
+            if (answeredAt != null)
+              Text(
+                'Answered on: ${DateFormat.yMMMd().format(answeredAt.toDate())}',
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey,
+                ),
               ),
-            ),
           ],
         ),
       ),

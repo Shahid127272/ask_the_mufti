@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
-import '../../core/services/user_role_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
+import '../../services/role_service.dart';
+import '../../services/user_service.dart';
+import '../../services/username_service.dart';
+
+import '../auth/login_screen.dart';
 import '../feeds/feeds_screen.dart';
 import '../categories/categories_screen.dart';
 import '../ask_question/ask_question_screen.dart';
 import '../profile/profile_screen.dart';
 import '../mufti/mufti_dashboard_screen.dart';
+import '../username/username_screen.dart';
 
 class RootScreen extends StatefulWidget {
   const RootScreen({super.key});
@@ -17,30 +23,70 @@ class RootScreen extends StatefulWidget {
 class _RootScreenState extends State<RootScreen> {
   int _index = 0;
   String? _role;
+  String? _username;
+  bool _loading = true;
 
   @override
   void initState() {
     super.initState();
-    _loadRole();
+
+    /// 🔐 Auth state listener (login / logout safe)
+    FirebaseAuth.instance.authStateChanges().listen((user) {
+      if (!mounted) return;
+
+      if (user == null) {
+        setState(() {
+          _role = null;
+          _username = null;
+          _index = 0;
+          _loading = false;
+        });
+      } else {
+        _loadUserData();
+      }
+    });
   }
 
-  Future<void> _loadRole() async {
-    final role = await UserRoleService().getCurrentUserRole();
+  Future<void> _loadUserData() async {
+    setState(() => _loading = true);
+
+    final user = FirebaseAuth.instance.currentUser!;
+    final userService = UserService();
+    final usernameService = UsernameService();
+
+    /// ensure user doc exists
+    await userService.createUserIfNotExists(user);
+
+    final role = await RoleService().getCurrentUserRole();
+    final username = await usernameService.getUsername(user.uid);
 
     if (!mounted) return;
 
     setState(() {
-      _role = role ?? 'user';
-      _index = 0; // ✅ safety reset
+      _role = role;
+      _username = username;
+      _index = 0;
+      _loading = false;
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_role == null) {
+    /// 🔐 LOGIN GATE
+    if (FirebaseAuth.instance.currentUser == null) {
+      return const LoginScreen();
+    }
+
+    /// ⏳ LOADING
+    if (_loading || _role == null) {
       return const Scaffold(
         body: Center(child: CircularProgressIndicator()),
       );
+    }
+
+    /// 🧑 USERNAME REQUIRED
+    if (_username == null) {
+      return const UsernameScreen();
     }
 
     final screens = _screensByRole(_role!);
@@ -59,13 +105,13 @@ class _RootScreenState extends State<RootScreen> {
 
   // 🔑 ROLE → SCREENS
   List<Widget> _screensByRole(String role) {
-    final base = <Widget>[
-      const FeedsScreen(),
+    final List<Widget> base = [
+      FeedsScreen(), // ❗ not const
       const CategoriesScreen(),
       const AskQuestionScreen(),
     ];
 
-    if (role == 'mufti' || role == 'owner') {
+    if (role == 'admin' || role == 'mufti') {
       base.add(const MuftiDashboardScreen());
     }
 
@@ -75,23 +121,23 @@ class _RootScreenState extends State<RootScreen> {
 
   // 🔑 ROLE → NAV ITEMS
   List<BottomNavigationBarItem> _itemsByRole(String role) {
-    final base = <BottomNavigationBarItem>[
-      const BottomNavigationBarItem(
+    final List<BottomNavigationBarItem> items = const [
+      BottomNavigationBarItem(
         icon: Icon(Icons.home),
         label: 'Feeds',
       ),
-      const BottomNavigationBarItem(
+      BottomNavigationBarItem(
         icon: Icon(Icons.category),
         label: 'Categories',
       ),
-      const BottomNavigationBarItem(
+      BottomNavigationBarItem(
         icon: Icon(Icons.add_circle_outline),
         label: 'Ask',
       ),
-    ];
+    ].toList();
 
-    if (role == 'mufti' || role == 'owner') {
-      base.add(
+    if (role == 'admin' || role == 'mufti') {
+      items.add(
         const BottomNavigationBarItem(
           icon: Icon(Icons.admin_panel_settings),
           label: 'Mufti',
@@ -99,13 +145,13 @@ class _RootScreenState extends State<RootScreen> {
       );
     }
 
-    base.add(
+    items.add(
       const BottomNavigationBarItem(
         icon: Icon(Icons.person),
         label: 'Profile',
       ),
     );
 
-    return base;
+    return items;
   }
 }

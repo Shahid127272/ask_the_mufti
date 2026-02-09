@@ -1,35 +1,35 @@
 import 'package:flutter/material.dart';
-import '../../services/questions_firestore_service.dart';
+
 import '../../models/question_model.dart';
+import '../../services/questions_firestore_service.dart';
 import '../answer_detail/answer_detail_screen.dart';
 
 class FeedsScreen extends StatelessWidget {
   final String? category;
   final String? subCategory;
 
-  const FeedsScreen({
+  FeedsScreen({
     super.key,
     this.category,
     this.subCategory,
   });
 
+  final QuestionsFirestoreService service =
+  QuestionsFirestoreService();
+
   @override
   Widget build(BuildContext context) {
-    final service = QuestionsFirestoreService();
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Feeds'),
-        centerTitle: true,
       ),
       body: StreamBuilder<List<QuestionModel>>(
-        // ✅ FIX HERE (named parameters)
         stream: service.streamPublishedQuestions(
           category: category,
           subCategory: subCategory,
         ),
         builder: (context, snapshot) {
-          // 🔄 Loading
+          // ⏳ Loading
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(
               child: CircularProgressIndicator(),
@@ -38,6 +38,7 @@ class FeedsScreen extends StatelessWidget {
 
           // ❌ Error
           if (snapshot.hasError) {
+            debugPrint(snapshot.error.toString());
             return const Center(
               child: Text('Something went wrong'),
             );
@@ -66,6 +67,12 @@ class FeedsScreen extends StatelessWidget {
               final q = questions[index];
 
               return ListTile(
+                contentPadding: const EdgeInsets.symmetric(
+                  vertical: 6,
+                  horizontal: 4,
+                ),
+
+                // ❓ Question
                 title: Text(
                   q.questionText,
                   maxLines: 2,
@@ -74,19 +81,22 @@ class FeedsScreen extends StatelessWidget {
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                subtitle: q.answer != null
-                    ? const Text(
-                  'Tap to read answer',
-                  style: TextStyle(fontSize: 12),
-                )
-                    : null,
-                trailing: const Text(
-                  'See more',
+
+                // 🏷 Status
+                subtitle: const Text(
+                  'Answered',
                   style: TextStyle(
-                    color: Colors.deepPurple,
-                    fontWeight: FontWeight.w500,
+                    fontSize: 12,
+                    color: Colors.green,
                   ),
                 ),
+
+                trailing: const Icon(
+                  Icons.arrow_forward_ios,
+                  size: 16,
+                ),
+
+                // 🔗 CONNECT → DETAIL
                 onTap: () {
                   Navigator.push(
                     context,
