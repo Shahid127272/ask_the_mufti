@@ -1,0 +1,98 @@
+{
+  "project_info": {
+    "project_number": "1056500006474",
+    "project_id": "ask-mufti-30221",
+    "storage_bucket": "ask-mufti-30221.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1056500006474:android:30f7fd7f33e40184abb0b3",
+        "android_client_info": {
+          "package_name": "com.ask_the_mufti.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1056500006474-cio8oqhbq6bj7bks7tb2tgarms2b3i5r.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.ask_the_mufti.app",
+            "certificate_hash": "47f481d8edf6c2264187fd42967fb3033654b06f"
+          }
+        },
+        {
+          "client_id": "1056500006474-72iu8o4t3frpg30retrvcpq054uacama.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAJxDqjnqtWfqcUwCcndOlqDhzQG8d1klQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1056500006474-72iu8o4t3frpg30retrvcpq054uacama.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "1056500006474-i2ii18g0fd3a26gf88r97mtggdnbkgsj.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.askTheMufti"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1056500006474:android:02e198fe34e2e370abb0b3",
+        "android_client_info": {
+          "package_name": "com.example.ask_the_mufti"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1056500006474-8vjhreot1b16oc9ibcb1v26d7q94kher.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.ask_the_mufti",
+            "certificate_hash": "47f481d8edf6c2264187fd42967fb3033654b06f"
+          }
+        },
+        {
+          "client_id": "1056500006474-72iu8o4t3frpg30retrvcpq054uacama.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAJxDqjnqtWfqcUwCcndOlqDhzQG8d1klQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1056500006474-72iu8o4t3frpg30retrvcpq054uacama.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "1056500006474-i2ii18g0fd3a26gf88r97mtggdnbkgsj.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.askTheMufti"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

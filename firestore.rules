@@ -1,0 +1,146 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isLoggedIn() {
+      return request.auth != null;
+    }
+
+    function userDoc() {
+      return get(
+        /databases/$(database)/documents/users/$(request.auth.uid)
+      );
+    }
+
+    function role() {
+      return isLoggedIn()
+        && userDoc().data.role != null
+        ? userDoc().data.role
+        : "user";
+    }
+
+    function isOwner() {
+      return isLoggedIn() && role() == "owner";
+    }
+
+    function isAdmin() {
+      return isLoggedIn() && role() == "admin";
+    }
+
+    function isMufti() {
+      return isLoggedIn() && role() == "mufti";
+    }
+
+    function isAdminOrOwner() {
+      return isOwner() || isAdmin();
+    }
+
+    function isMuftiOrAbove() {
+      return isOwner() || isAdmin() || isMufti();
+    }
+
+    match /users/{uid} {
+      allow read: if isLoggedIn();
+
+      allow create: if isLoggedIn()
+        && request.auth.uid == uid
+        && request.resource.data.role == "user";
+
+      allow update: if isLoggedIn()
+        && request.auth.uid == uid
+        && request.resource.data.role == resource.data.role;
+
+      allow update, delete: if isAdminOrOwner();
+    }
+
+    match /categories/{id} {
+      allow read: if true;
+      allow create, update, delete: if isAdminOrOwner();
+    }
+
+    match /subcategories/{id} {
+      allow read: if true;
+      allow create, update, delete: if isAdminOrOwner();
+    }
+
+    match /questions/{id} {
+      allow read: if true;
+
+      allow create: if isLoggedIn()
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.status == "pending";
+
+      allow update: if isMuftiOrAbove();
+      allow delete: if isAdminOrOwner();
+    }
+
+    match /notifications/{notificationId} {
+      allow read: if isLoggedIn()
+        && resource.data.userId == request.auth.uid;
+
+      allow create: if isLoggedIn()
+        && (
+          request.resource.data.userId == request.auth.uid
+          || isAdminOrOwner()
+        );
+
+      allow update: if isLoggedIn()
+        && (
+          (
+            resource.data.userId == request.auth.uid
+            && request.resource.data.userId == resource.data.userId
+          )
+          || isAdminOrOwner()
+        );
+
+      allow delete: if isAdminOrOwner();
+    }
+
+    match /invitations/{inviteId} {
+      allow create: if isAdminOrOwner();
+      allow read: if isAdminOrOwner();
+      allow update: if isLoggedIn();
+      allow delete: if isAdminOrOwner();
+    }
+
+    match /reviews/{uid} {
+      allow read: if isLoggedIn();
+
+      allow create: if isLoggedIn()
+        && request.auth.uid == uid
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.rating >= 1
+        && request.resource.data.rating <= 5
+        && request.resource.data.review is string
+        && request.resource.data.review.size() >= 3
+        && request.resource.data.review.size() <= 1000;
+
+      allow update: if isLoggedIn()
+        && request.auth.uid == uid
+        && resource.data.userId == request.auth.uid
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.rating >= 1
+        && request.resource.data.rating <= 5
+        && request.resource.data.review is string
+        && request.resource.data.review.size() >= 3
+        && request.resource.data.review.size() <= 1000;
+
+      allow delete: if isAdminOrOwner();
+    }
+
+    match /suggestions/{suggestionId} {
+      allow read: if isAdminOrOwner();
+
+      allow create: if isLoggedIn()
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.suggestion is string
+        && request.resource.data.suggestion.size() >= 5
+        && request.resource.data.suggestion.size() <= 2000
+        && request.resource.data.status == "new";
+
+      allow update: if isAdminOrOwner();
+      allow delete: if isAdminOrOwner();
+    }
+  }
+}

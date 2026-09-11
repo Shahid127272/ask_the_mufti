@@ -1,0 +1,104 @@
+name: ask_the_mufti
+description: Ask The Mufti - Beginner Version
+publish_to: 'none'
+
+version: 1.0.20+23
+
+environment:
+  sdk: ">=3.3.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+
+  # Firebase
+  firebase_core: ^4.5.0
+  cloud_firestore: ^6.1.3
+  firebase_auth: ^6.2.0
+  firebase_storage: ^13.1.0
+  firebase_messaging: ^16.1.2
+
+  # Notifications
+  flutter_local_notifications: ^17.2.1
+
+  # Google Sign-In
+  google_sign_in: ^6.3.0
+
+  # Media
+  image_picker: ^1.1.3
+  video_player: ^2.10.0
+
+  # Utilities
+  intl: ^0.19.0
+  uuid: ^4.5.3
+  url_launcher: ^6.3.2
+
+  # Phone Input
+  intl_phone_field: ^3.2.0
+
+  # State Management
+  provider: ^6.1.5+1
+
+  # Local Storage
+  shared_preferences: ^2.2.2
+
+  # Sharing
+  share_plus: ^12.0.1
+  screenshot: ^3.0.0
+
+  # Payments
+  razorpay_flutter: ^1.3.6
+
+  # App Icon Generator
+  flutter_launcher_icons: ^0.14.4
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/icons/
+    - assets/images/
+    - assets/fonts/
+    - assets/video/
+    - assets/images/header_bg.jpg
+
+  fonts:
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/inter.ttf
+
+    - family: OpenSans
+      fonts:
+        - asset: assets/fonts/opensans.ttf
+
+    - family: Roboto
+      fonts:
+        - asset: assets/fonts/roboto.ttf
+
+    - family: Norwester
+      fonts:
+        - asset: assets/fonts/norwester.otf
+
+    - family: PatrickHand
+      fonts:
+        - asset: assets/fonts/patrickhand.ttf
+
+    - family: Playfair
+      fonts:
+        - asset: assets/fonts/playfair.ttf
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: false
+  image_path: "assets/icons/app_icon.png"
+  min_sdk_android: 21
+  adaptive_icon_background: "#000000"
+  adaptive_icon_foreground: "assets/icons/app_icon.png"

@@ -1,0 +1,4 @@
+targets:
+  android:
+    output-dir: android/app/build/outputs/flutter-apk
+

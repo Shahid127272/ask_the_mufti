@@ -1,0 +1,42 @@
+{
+    "flutter":  {
+                    "platforms":  {
+                                      "android":  {
+                                                      "default":  {
+                                                                      "projectId":  "ask-mufti-30221",
+                                                                      "appId":  "1:1056500006474:android:30f7fd7f33e40184abb0b3",
+                                                                      "fileOutput":  "android/app/google-services.json"
+                                                                  }
+                                                  },
+                                      "dart":  {
+                                                   "lib/firebase_options.dart":  {
+                                                                                     "projectId":  "ask-mufti-30221",
+                                                                                     "configurations":  {
+                                                                                                            "android":  "1:1056500006474:android:30f7fd7f33e40184abb0b3",
+                                                                                                            "ios":  "1:1056500006474:ios:e14d382cdbf57a98abb0b3",
+                                                                                                            "macos":  "1:1056500006474:ios:e14d382cdbf57a98abb0b3",
+                                                                                                            "web":  "1:1056500006474:web:0fc9b1b851b7f97eabb0b3",
+                                                                                                            "windows":  "1:1056500006474:web:c72e432f930e85ecabb0b3"
+                                                                                                        }
+                                                                                 }
+                                               }
+                                  }
+                },
+    "functions":  [
+                      {
+                          "source":  "functions",
+                          "codebase":  "default",
+                          "disallowLegacyRuntimeConfig":  true,
+                          "ignore":  [
+                                         "node_modules",
+                                         ".git",
+                                         "firebase-debug.log",
+                                         "firebase-debug.*.log",
+                                         "*.local"
+                                     ]
+                      }
+                  ],
+    "firestore":  {
+                      "rules":  "firestore.rules"
+                  }
+}
