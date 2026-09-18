@@ -333,11 +333,41 @@ class _ReviewsSuggestionsScreenState
   }
 
   // ============================================================
+  // RATING COLOR
+  // ============================================================
+
+  Color _ratingColor(
+      ColorScheme colorScheme,
+      int rating,
+      ) {
+    switch (rating) {
+      case 1:
+        return colorScheme.error;
+
+      case 2:
+        return Colors.orange;
+
+      case 3:
+        return Colors.amber;
+
+      case 4:
+        return Colors.lightGreen;
+
+      case 5:
+        return Colors.green;
+
+      default:
+        return colorScheme.outline;
+    }
+  }
+
+  // ============================================================
   // STAR SELECTOR
   // ============================================================
 
   Widget _ratingSelector() {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -348,7 +378,9 @@ class _ReviewsSuggestionsScreenState
             fontWeight: FontWeight.w600,
           ),
         ),
+
         const SizedBox(height: 8),
+
         Row(
           children: List.generate(
             5,
@@ -368,8 +400,11 @@ class _ReviewsSuggestionsScreenState
                       : Icons.star_border,
                   size: 34,
                   color: rating <= _selectedRating
-                      ? Colors.amber
-                      : theme.colorScheme.outline,
+                      ? _ratingColor(
+                    colorScheme,
+                    _selectedRating,
+                  )
+                      : colorScheme.outline,
                 ),
               );
             },
@@ -385,12 +420,15 @@ class _ReviewsSuggestionsScreenState
 
   Widget _reviewForm() {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     if (_loadingMyReview) {
-      return const Center(
+      return Center(
         child: Padding(
-          padding: EdgeInsets.all(20),
-          child: CircularProgressIndicator(),
+          padding: const EdgeInsets.all(20),
+          child: CircularProgressIndicator(
+            color: colorScheme.primary,
+          ),
         ),
       );
     }
@@ -406,9 +444,11 @@ class _ReviewsSuggestionsScreenState
               children: [
                 Icon(
                   Icons.star_outline,
-                  color: theme.colorScheme.primary,
+                  color: colorScheme.primary,
                 ),
+
                 const SizedBox(width: 10),
+
                 Expanded(
                   child: Text(
                     _hasExistingReview
@@ -453,11 +493,12 @@ class _ReviewsSuggestionsScreenState
                     ? null
                     : _submitReview,
                 icon: _submittingReview
-                    ? const SizedBox(
+                    ? SizedBox(
                   width: 18,
                   height: 18,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
+                    color: colorScheme.onPrimary,
                   ),
                 )
                     : const Icon(Icons.send),
@@ -482,6 +523,7 @@ class _ReviewsSuggestionsScreenState
 
   Widget _suggestionForm() {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 24),
@@ -494,9 +536,11 @@ class _ReviewsSuggestionsScreenState
               children: [
                 Icon(
                   Icons.lightbulb_outline,
-                  color: theme.colorScheme.primary,
+                  color: colorScheme.primary,
                 ),
+
                 const SizedBox(width: 10),
+
                 Expanded(
                   child: Text(
                     'Suggestion Dein',
@@ -542,11 +586,12 @@ class _ReviewsSuggestionsScreenState
                     ? null
                     : _submitSuggestion,
                 icon: _submittingSuggestion
-                    ? const SizedBox(
+                    ? SizedBox(
                   width: 18,
                   height: 18,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
+                    color: colorScheme.onPrimary,
                   ),
                 )
                     : const Icon(Icons.send),
@@ -590,6 +635,7 @@ class _ReviewsSuggestionsScreenState
 
   Widget _reviewList() {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     return StreamBuilder<
         QuerySnapshot<Map<String, dynamic>>>(
@@ -605,10 +651,12 @@ class _ReviewsSuggestionsScreenState
       builder: (context, snapshot) {
         if (snapshot.connectionState ==
             ConnectionState.waiting) {
-          return const Padding(
-            padding: EdgeInsets.all(30),
+          return Padding(
+            padding: const EdgeInsets.all(30),
             child: Center(
-              child: CircularProgressIndicator(),
+              child: CircularProgressIndicator(
+                color: colorScheme.primary,
+              ),
             ),
           );
         }
@@ -635,15 +683,19 @@ class _ReviewsSuggestionsScreenState
                   Icon(
                     Icons.rate_review_outlined,
                     size: 46,
-                    color: theme.colorScheme.outline,
+                    color: colorScheme.outline,
                   ),
+
                   const SizedBox(height: 10),
+
                   Text(
                     'Abhi koi review nahi hai.',
                     style: theme.textTheme.bodyMedium,
                     textAlign: TextAlign.center,
                   ),
+
                   const SizedBox(height: 4),
+
                   Text(
                     'Sabse pehla review aap dein!',
                     style: theme.textTheme.bodySmall,
@@ -686,6 +738,7 @@ class _ReviewsSuggestionsScreenState
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
+      notificationCount: 0,
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -751,9 +804,35 @@ class _ReviewCard extends StatelessWidget {
     this.createdAt,
   });
 
+  Color _ratingColor(
+      ColorScheme colorScheme,
+      int rating,
+      ) {
+    switch (rating) {
+      case 1:
+        return colorScheme.error;
+
+      case 2:
+        return Colors.orange;
+
+      case 3:
+        return Colors.amber;
+
+      case 4:
+        return Colors.lightGreen;
+
+      case 5:
+        return Colors.green;
+
+      default:
+        return colorScheme.outline;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     final dateText =
     createdAt != null
@@ -819,7 +898,12 @@ class _ReviewCard extends StatelessWidget {
                                   ? Icons.star
                                   : Icons.star_border,
                               size: 18,
-                              color: Colors.amber,
+                              color: index < rating
+                                  ? _ratingColor(
+                                colorScheme,
+                                rating,
+                              )
+                                  : colorScheme.outline,
                             );
                           },
                         ),

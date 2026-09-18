@@ -6,7 +6,6 @@ class AppHeader extends StatelessWidget {
   final String? profileImage;
   final Color roleColor;
 
-  /// 🔥 NEW
   final int notificationCount;
 
   final VoidCallback? onNotificationTap;
@@ -18,7 +17,7 @@ class AppHeader extends StatelessWidget {
     required this.role,
     this.profileImage,
     required this.roleColor,
-    this.notificationCount = 0, // 👈 YE ADD KARO
+    this.notificationCount = 0,
     this.onNotificationTap,
     this.onMenuTap,
   });
@@ -26,6 +25,7 @@ class AppHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final media = MediaQuery.of(context);
+    final theme = Theme.of(context);
 
     return Material(
       color: roleColor,
@@ -35,27 +35,29 @@ class AppHeader extends StatelessWidget {
           duration: const Duration(milliseconds: 250),
           height: media.size.height * 0.11,
           padding: const EdgeInsets.symmetric(horizontal: 16),
-
           child: Row(
             children: [
-
-              /// 👤 PROFILE
+              /// PROFILE
               CircleAvatar(
                 radius: 20,
-                backgroundColor: Colors.white,
+                backgroundColor: theme.colorScheme.surface,
                 backgroundImage:
                 (profileImage != null && profileImage!.isNotEmpty)
                     ? NetworkImage(profileImage!)
                     : null,
                 onBackgroundImageError: (_, __) {},
                 child: (profileImage == null || profileImage!.isEmpty)
-                    ? const Icon(Icons.person, color: Colors.grey)
+                    ? Icon(
+                  Icons.person,
+                  color: theme.colorScheme.onSurface
+                      .withValues(alpha: 0.55),
+                )
                     : null,
               ),
 
               const SizedBox(width: 12),
 
-              /// 📝 NAME
+              /// NAME
               Expanded(
                 child: Text(
                   userName,
@@ -70,10 +72,12 @@ class AppHeader extends StatelessWidget {
                 ),
               ),
 
-              /// 🏷️ ROLE
+              /// ROLE
               Container(
-                padding:
-                const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 margin: const EdgeInsets.only(right: 8),
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.2),
@@ -89,11 +93,9 @@ class AppHeader extends StatelessWidget {
                 ),
               ),
 
-              /// 🔔 NOTIFICATION + BADGE
+              /// NOTIFICATION
               Stack(
                 children: [
-
-                  /// 🔔 ICON
                   IconButton(
                     onPressed: onNotificationTap ?? () {},
                     splashRadius: 22,
@@ -103,7 +105,6 @@ class AppHeader extends StatelessWidget {
                     ),
                   ),
 
-                  /// 🔴 BADGE
                   if (notificationCount > 0)
                     Positioned(
                       right: 6,
@@ -111,7 +112,7 @@ class AppHeader extends StatelessWidget {
                       child: Container(
                         padding: const EdgeInsets.all(4),
                         decoration: BoxDecoration(
-                          color: Colors.red,
+                          color: theme.colorScheme.error,
                           borderRadius: BorderRadius.circular(10),
                         ),
                         constraints: const BoxConstraints(
@@ -134,7 +135,7 @@ class AppHeader extends StatelessWidget {
                 ],
               ),
 
-              /// ☰ MENU
+              /// MENU
               Builder(
                 builder: (context) => IconButton(
                   splashRadius: 22,
@@ -142,7 +143,10 @@ class AppHeader extends StatelessWidget {
                           () {
                         Scaffold.of(context).openDrawer();
                       },
-                  icon: const Icon(Icons.menu, color: Colors.white),
+                  icon: const Icon(
+                    Icons.menu,
+                    color: Colors.white,
+                  ),
                 ),
               ),
             ],

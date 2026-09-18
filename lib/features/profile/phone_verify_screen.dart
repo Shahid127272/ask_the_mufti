@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
+import '../../core/app_scaffold.dart';
 import '../../services/phone_auth_service.dart';
 import '../../services/profile_service.dart';
 
 class PhoneVerifyScreen extends StatefulWidget {
-
   final String phone;
 
   const PhoneVerifyScreen({
@@ -17,14 +17,11 @@ class PhoneVerifyScreen extends StatefulWidget {
       _PhoneVerifyScreenState();
 }
 
-class _PhoneVerifyScreenState
-    extends State<PhoneVerifyScreen> {
-
+class _PhoneVerifyScreenState extends State<PhoneVerifyScreen> {
   final TextEditingController otpController =
   TextEditingController();
 
-  final PhoneAuthService authService =
-  PhoneAuthService();
+  final PhoneAuthService authService = PhoneAuthService();
 
   bool loading = false;
 
@@ -44,11 +41,9 @@ class _PhoneVerifyScreenState
   /// VERIFY OTP
 
   Future<void> verify() async {
-
     final otp = otpController.text.trim();
 
     if (otp.length != 6) {
-
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("Enter valid OTP"),
@@ -61,19 +56,17 @@ class _PhoneVerifyScreenState
     setState(() => loading = true);
 
     try {
-
       await authService.verifyOTP(otp);
 
       /// update phone in firestore
-      await ProfileService()
-          .updatePhone(widget.phone);
+      await ProfileService().updatePhone(widget.phone);
 
       if (!mounted) return;
 
       Navigator.pop(context);
       Navigator.pop(context);
-
     } catch (e) {
+      if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -89,34 +82,25 @@ class _PhoneVerifyScreenState
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
-    return Scaffold(
-
-      appBar: AppBar(
-        title: const Text("Verify Phone"),
-      ),
-
+    return AppScaffold(
+      notificationCount: 0,
       body: Padding(
-
         padding: const EdgeInsets.all(20),
-
         child: Column(
-
           children: [
-
             Text(
               "Enter OTP sent to ${widget.phone}",
-              style: const TextStyle(fontSize: 16),
+              style: theme.textTheme.bodyLarge,
             ),
 
             const SizedBox(height: 20),
 
             TextField(
-
               controller: otpController,
-
               keyboardType: TextInputType.number,
-
               decoration: const InputDecoration(
                 labelText: "OTP Code",
               ),
@@ -125,16 +109,13 @@ class _PhoneVerifyScreenState
             const SizedBox(height: 20),
 
             SizedBox(
-
               width: double.infinity,
-
               child: ElevatedButton(
-
-                onPressed:
-                loading ? null : verify,
-
+                onPressed: loading ? null : verify,
                 child: loading
-                    ? const CircularProgressIndicator()
+                    ? CircularProgressIndicator(
+                  color: colorScheme.onPrimary,
+                )
                     : const Text("Verify"),
               ),
             ),

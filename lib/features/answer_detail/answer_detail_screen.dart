@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:provider/provider.dart';
 
 import '../../models/question_model.dart';
 import '../../services/questions_firestore_service.dart';
+import '../../providers/font_provider.dart';
 
 class AnswerDetailScreen extends StatefulWidget {
   final QuestionModel question;
@@ -83,11 +85,9 @@ class _AnswerDetailScreenState
         _bookmarkLoading = false;
       });
 
-      ScaffoldMessenger.of(context)
-          .showSnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          duration:
-          const Duration(seconds: 1),
+          duration: const Duration(seconds: 1),
           content: Text(
             result
                 ? 'Question bookmarked'
@@ -102,8 +102,7 @@ class _AnswerDetailScreenState
         _bookmarkLoading = false;
       });
 
-      ScaffoldMessenger.of(context)
-          .showSnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
             'Bookmark error: $e',
@@ -176,6 +175,28 @@ class _AnswerDetailScreenState
     final theme =
     Theme.of(context);
 
+    final colorScheme =
+        theme.colorScheme;
+
+    final fonts =
+    context.read<FontProvider>();
+
+    final questionFontFamily =
+    fonts.resolveFontFamily(
+      fonts.questionFont,
+    );
+
+    final questionTextStyle =
+    theme.textTheme.bodyMedium?.copyWith(
+      fontFamily: questionFontFamily,
+      fontSize: fonts.fontSize,
+      fontWeight: fonts.fontWeight,
+      fontStyle: fonts.isItalic
+          ? FontStyle.italic
+          : FontStyle.normal,
+      height: 1.6,
+    );
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -184,9 +205,7 @@ class _AnswerDetailScreenState
         return SafeArea(
           child: SizedBox(
             height:
-            MediaQuery.of(context)
-                .size
-                .height *
+            MediaQuery.of(context).size.height *
                 0.82,
             child: Column(
               children: [
@@ -202,9 +221,8 @@ class _AnswerDetailScreenState
                     children: [
                       Icon(
                         Icons.history,
-                        color: theme
-                            .colorScheme
-                            .primary,
+                        color:
+                        colorScheme.primary,
                       ),
                       const SizedBox(
                         width: 10,
@@ -230,22 +248,22 @@ class _AnswerDetailScreenState
                 Expanded(
                   child: StreamBuilder<
                       QuerySnapshot<
-                          Map<String,
-                              dynamic>>>(
+                          Map<String, dynamic>>>(
                     stream:
                     FirebaseFirestore
                         .instance
                         .collection(
-                        'questions')
+                      'questions',
+                    )
                         .doc(
                       question.id,
                     )
                         .collection(
-                        'editHistory')
+                      'editHistory',
+                    )
                         .orderBy(
                       'editedAt',
-                      descending:
-                      true,
+                      descending: true,
                     )
                         .snapshots(),
                     builder: (
@@ -256,27 +274,27 @@ class _AnswerDetailScreenState
                         return Center(
                           child: Padding(
                             padding:
-                            const EdgeInsets
-                                .all(
+                            const EdgeInsets.all(
                               24,
                             ),
                             child: Text(
-                              'Edit history load nahi ho saki.\n\n${snapshot.error}',
+                              'Edit history load nahi ho saki.\n\n'
+                                  '${snapshot.error}',
                               textAlign:
-                              TextAlign
-                                  .center,
+                              TextAlign.center,
                             ),
                           ),
                         );
                       }
 
-                      if (snapshot
-                          .connectionState ==
-                          ConnectionState
-                              .waiting) {
-                        return const Center(
+                      if (snapshot.connectionState ==
+                          ConnectionState.waiting) {
+                        return Center(
                           child:
-                          CircularProgressIndicator(),
+                          CircularProgressIndicator(
+                            color:
+                            colorScheme.primary,
+                          ),
                         );
                       }
 
@@ -288,20 +306,18 @@ class _AnswerDetailScreenState
                         return Center(
                           child: Padding(
                             padding:
-                            const EdgeInsets
-                                .all(
+                            const EdgeInsets.all(
                               24,
                             ),
                             child: Column(
                               mainAxisSize:
-                              MainAxisSize
-                                  .min,
+                              MainAxisSize.min,
                               children: [
                                 Icon(
                                   Icons.history,
                                   size: 56,
-                                  color: theme
-                                      .colorScheme
+                                  color:
+                                  colorScheme
                                       .outline,
                                 ),
                                 const SizedBox(
@@ -321,11 +337,13 @@ class _AnswerDetailScreenState
                                 const SizedBox(
                                   height: 6,
                                 ),
-                                const Text(
+                                Text(
                                   'Is sawal ko abhi edit nahi kiya gaya.',
                                   textAlign:
-                                  TextAlign
-                                      .center,
+                                  TextAlign.center,
+                                  style: theme
+                                      .textTheme
+                                      .bodyMedium,
                                 ),
                               ],
                             ),
@@ -335,61 +353,49 @@ class _AnswerDetailScreenState
 
                       return ListView.builder(
                         padding:
-                        const EdgeInsets
-                            .all(
-                          16,
-                        ),
+                        const EdgeInsets.all(16),
                         itemCount:
                         docs.length,
                         itemBuilder:
                             (context, index) {
                           final data =
-                          docs[index]
-                              .data();
+                          docs[index].data();
 
                           final oldQuestion =
-                              data[
-                              'oldQuestion']
+                              data['oldQuestion']
                                   ?.toString() ??
                                   '';
 
                           final newQuestion =
-                              data[
-                              'newQuestion']
+                              data['newQuestion']
                                   ?.toString() ??
                                   '';
 
                           final editedBy =
-                              data[
-                              'editedBy']
+                              data['editedBy']
                                   ?.toString() ??
                                   'Unknown';
 
                           final role =
-                          data[
-                          'editorRole']
+                          data['editorRole']
                               ?.toString();
 
                           final editedAt =
-                          data[
-                          'editedAt']
+                          data['editedAt']
                           is Timestamp
-                              ? data[
-                          'editedAt']
+                              ? data['editedAt']
                           as Timestamp
                               : null;
 
                           return Card(
                             margin:
-                            const EdgeInsets
-                                .only(
+                            const EdgeInsets.only(
                               bottom: 14,
                             ),
                             elevation: 1,
                             child: Padding(
                               padding:
-                              const EdgeInsets
-                                  .all(
+                              const EdgeInsets.all(
                                 16,
                               ),
                               child: Column(
@@ -401,8 +407,7 @@ class _AnswerDetailScreenState
                                     children: [
                                       CircleAvatar(
                                         radius: 20,
-                                        child:
-                                        Text(
+                                        child: Text(
                                           editedBy
                                               .isNotEmpty
                                               ? editedBy
@@ -414,11 +419,9 @@ class _AnswerDetailScreenState
                                               : '?',
                                         ),
                                       ),
-
                                       const SizedBox(
                                         width: 10,
                                       ),
-
                                       Expanded(
                                         child:
                                         Column(
@@ -438,8 +441,7 @@ class _AnswerDetailScreenState
                                               ),
                                             ),
                                             const SizedBox(
-                                              height:
-                                              2,
+                                              height: 2,
                                             ),
                                             Text(
                                               '${_roleName(role)} • ${_formatDate(editedAt)}',
@@ -466,8 +468,8 @@ class _AnswerDetailScreenState
                                       fontWeight:
                                       FontWeight
                                           .bold,
-                                      color: theme
-                                          .colorScheme
+                                      color:
+                                      colorScheme
                                           .error,
                                     ),
                                   ),
@@ -478,17 +480,13 @@ class _AnswerDetailScreenState
 
                                   Container(
                                     width:
-                                    double
-                                        .infinity,
+                                    double.infinity,
                                     padding:
                                     const EdgeInsets
-                                        .all(
-                                      12,
-                                    ),
+                                        .all(12),
                                     decoration:
                                     BoxDecoration(
-                                      color: theme
-                                          .colorScheme
+                                      color: colorScheme
                                           .error
                                           .withValues(
                                         alpha: .06,
@@ -501,12 +499,8 @@ class _AnswerDetailScreenState
                                     ),
                                     child: Text(
                                       oldQuestion,
-                                      style: theme
-                                          .textTheme
-                                          .bodyMedium
-                                          ?.copyWith(
-                                        height: 1.6,
-                                      ),
+                                      style:
+                                      questionTextStyle,
                                     ),
                                   ),
 
@@ -518,8 +512,8 @@ class _AnswerDetailScreenState
                                     child: Icon(
                                       Icons
                                           .arrow_downward,
-                                      color: theme
-                                          .colorScheme
+                                      color:
+                                      colorScheme
                                           .primary,
                                     ),
                                   ),
@@ -538,7 +532,8 @@ class _AnswerDetailScreenState
                                       FontWeight
                                           .bold,
                                       color:
-                                      Colors.green,
+                                      colorScheme
+                                          .primary,
                                     ),
                                   ),
 
@@ -548,17 +543,14 @@ class _AnswerDetailScreenState
 
                                   Container(
                                     width:
-                                    double
-                                        .infinity,
+                                    double.infinity,
                                     padding:
                                     const EdgeInsets
-                                        .all(
-                                      12,
-                                    ),
+                                        .all(12),
                                     decoration:
                                     BoxDecoration(
-                                      color: Colors
-                                          .green
+                                      color: colorScheme
+                                          .primary
                                           .withValues(
                                         alpha: .06,
                                       ),
@@ -570,12 +562,8 @@ class _AnswerDetailScreenState
                                     ),
                                     child: Text(
                                       newQuestion,
-                                      style: theme
-                                          .textTheme
-                                          .bodyMedium
-                                          ?.copyWith(
-                                        height: 1.6,
-                                      ),
+                                      style:
+                                      questionTextStyle,
                                     ),
                                   ),
                                 ],
@@ -605,12 +593,15 @@ class _AnswerDetailScreenState
     final theme =
     Theme.of(context);
 
+    final colorScheme =
+        theme.colorScheme;
+
     if (question.status == 'new') {
       return _StatusCard(
         icon:
         Icons.hourglass_empty_rounded,
         color:
-        theme.colorScheme.primary,
+        colorScheme.primary,
         title:
         'Question Submitted',
         message:
@@ -623,7 +614,7 @@ class _AnswerDetailScreenState
         icon:
         Icons.hourglass_top_rounded,
         color:
-        Colors.orange,
+        colorScheme.tertiary,
         title:
         'Question Under Review',
         message:
@@ -644,9 +635,34 @@ class _AnswerDetailScreenState
     final theme =
     Theme.of(context);
 
+    final colorScheme =
+        theme.colorScheme;
+
+    final fonts =
+    context.watch<FontProvider>();
+
+    // ---------------------------------------------------------
+    // ANSWER FONT
+    // ---------------------------------------------------------
+
+    final answerFontFamily =
+    fonts.resolveFontFamily(
+      fonts.answerFont,
+    );
+
+    final answerTextStyle =
+    theme.textTheme.bodyLarge?.copyWith(
+      fontFamily: answerFontFamily,
+      fontSize: fonts.fontSize,
+      fontWeight: fonts.fontWeight,
+      fontStyle: fonts.isItalic
+          ? FontStyle.italic
+          : FontStyle.normal,
+      height: 1.9,
+    );
+
     final answer =
-    (question.answer ?? '')
-        .trim();
+    (question.answer ?? '').trim();
 
     return Column(
       crossAxisAlignment:
@@ -662,7 +678,8 @@ class _AnswerDetailScreenState
               .textTheme
               .labelLarge!
               .copyWith(
-            color: Colors.green,
+            color:
+            colorScheme.primary,
             fontWeight:
             FontWeight.bold,
           ),
@@ -673,32 +690,22 @@ class _AnswerDetailScreenState
         ),
 
         Container(
-          width:
-          double.infinity,
+          width: double.infinity,
           padding:
-          const EdgeInsets.all(
-            18,
-          ),
+          const EdgeInsets.all(18),
           decoration:
           BoxDecoration(
             color: theme
                 .colorScheme
                 .surfaceContainerHighest,
             borderRadius:
-            BorderRadius.circular(
-              18,
-            ),
+            BorderRadius.circular(18),
           ),
           child: SelectableText(
             answer.isEmpty
                 ? 'Answer not available.'
                 : answer,
-            style: theme
-                .textTheme
-                .bodyLarge
-                ?.copyWith(
-              height: 1.9,
-            ),
+            style: answerTextStyle,
           ),
         ),
 
@@ -716,7 +723,7 @@ class _AnswerDetailScreenState
                 .labelLarge!
                 .copyWith(
               color:
-              Colors.deepOrange,
+              colorScheme.tertiary,
               fontWeight:
               FontWeight.bold,
             ),
@@ -727,35 +734,30 @@ class _AnswerDetailScreenState
           ),
 
           Container(
-            width:
-            double.infinity,
+            width: double.infinity,
             padding:
-            const EdgeInsets.all(
-              18,
-            ),
+            const EdgeInsets.all(18),
             decoration:
             BoxDecoration(
-              color: Colors.orange
+              color: colorScheme
+                  .tertiary
                   .withValues(
                 alpha: .08,
               ),
               borderRadius:
-              BorderRadius.circular(
-                18,
-              ),
-              border: Border.all(
-                color: Colors.orange
+              BorderRadius.circular(18),
+              border:
+              Border.all(
+                color: colorScheme
+                    .tertiary
                     .withValues(
                   alpha: .25,
                 ),
               ),
             ),
-            child:
-            SelectableText(
+            child: SelectableText(
               question.reference!,
-              style: theme
-                  .textTheme
-                  .bodyLarge,
+              style: answerTextStyle,
             ),
           ),
         ],
@@ -796,8 +798,7 @@ class _AnswerDetailScreenState
             Expanded(
               child: Column(
                 crossAxisAlignment:
-                CrossAxisAlignment
-                    .start,
+                CrossAxisAlignment.start,
                 children: [
                   Text(
                     question.muftiName ??
@@ -815,11 +816,14 @@ class _AnswerDetailScreenState
                     height: 2,
                   ),
 
-                  const Text(
+                  Text(
                     'Verified Mufti',
-                    style: TextStyle(
+                    style: theme
+                        .textTheme
+                        .bodySmall
+                        ?.copyWith(
                       color:
-                      Colors.green,
+                      colorScheme.primary,
                       fontWeight:
                       FontWeight.bold,
                     ),
@@ -835,17 +839,13 @@ class _AnswerDetailScreenState
         ),
 
         SizedBox(
-          width:
-          double.infinity,
-          child:
-          FilledButton.icon(
+          width: double.infinity,
+          child: FilledButton.icon(
             onPressed: () {},
-            icon:
-            const Icon(
+            icon: const Icon(
               Icons.copy,
             ),
-            label:
-            const Text(
+            label: const Text(
               'Copy Answer',
             ),
           ),
@@ -856,17 +856,13 @@ class _AnswerDetailScreenState
         ),
 
         SizedBox(
-          width:
-          double.infinity,
-          child:
-          OutlinedButton.icon(
+          width: double.infinity,
+          child: OutlinedButton.icon(
             onPressed: () {},
-            icon:
-            const Icon(
+            icon: const Icon(
               Icons.share,
             ),
-            label:
-            const Text(
+            label: const Text(
               'Share',
             ),
           ),
@@ -885,6 +881,34 @@ class _AnswerDetailScreenState
       ) {
     final theme =
     Theme.of(context);
+
+    final fonts =
+    context.watch<FontProvider>();
+
+    // ---------------------------------------------------------
+    // QUESTION FONT
+    // ---------------------------------------------------------
+
+    final questionFontFamily =
+    fonts.resolveFontFamily(
+      fonts.questionFont,
+    );
+
+    final questionTextStyle =
+    theme.textTheme.headlineSmall
+        ?.copyWith(
+      fontFamily:
+      questionFontFamily,
+      fontSize:
+      fonts.fontSize,
+      fontWeight:
+      fonts.fontWeight,
+      fontStyle:
+      fonts.isItalic
+          ? FontStyle.italic
+          : FontStyle.normal,
+      height: 1.5,
+    );
 
     final isPublished =
         question.status ==
@@ -909,7 +933,6 @@ class _AnswerDetailScreenState
             _isBookmarked
                 ? 'Remove Bookmark'
                 : 'Bookmark',
-
             icon:
             _bookmarkLoading
                 ? const SizedBox(
@@ -917,8 +940,7 @@ class _AnswerDetailScreenState
               height: 20,
               child:
               CircularProgressIndicator(
-                strokeWidth:
-                2,
+                strokeWidth: 2,
               ),
             )
                 : Icon(
@@ -985,8 +1007,7 @@ class _AnswerDetailScreenState
 
             Row(
               crossAxisAlignment:
-              CrossAxisAlignment
-                  .center,
+              CrossAxisAlignment.center,
               children: [
                 Text(
                   'QUESTION',
@@ -1030,14 +1051,8 @@ class _AnswerDetailScreenState
 
             SelectableText(
               question.questionText,
-              style: theme
-                  .textTheme
-                  .headlineSmall
-                  ?.copyWith(
-                fontWeight:
-                FontWeight.bold,
-                height: 1.5,
-              ),
+              style:
+              questionTextStyle,
             ),
 
             // =================================================
@@ -1050,18 +1065,19 @@ class _AnswerDetailScreenState
 
             StreamBuilder<
                 QuerySnapshot<
-                    Map<String,
-                        dynamic>>>(
+                    Map<String, dynamic>>>(
               stream:
               FirebaseFirestore
                   .instance
                   .collection(
-                  'questions')
+                'questions',
+              )
                   .doc(
                 question.id,
               )
                   .collection(
-                  'editHistory')
+                'editHistory',
+              )
                   .limit(1)
                   .snapshots(),
               builder:
@@ -1153,7 +1169,8 @@ class _AnswerDetailScreenState
 // ⏳ STATUS CARD
 // =============================================================
 
-class _StatusCard extends StatelessWidget {
+class _StatusCard
+    extends StatelessWidget {
   final IconData icon;
   final Color color;
   final String title;
@@ -1174,23 +1191,18 @@ class _StatusCard extends StatelessWidget {
     Theme.of(context);
 
     return Container(
-      width:
-      double.infinity,
+      width: double.infinity,
       padding:
       const EdgeInsets.all(18),
       decoration:
       BoxDecoration(
-        color:
-        color.withValues(
+        color: color.withValues(
           alpha: .08,
         ),
         borderRadius:
-        BorderRadius.circular(
-          18,
-        ),
+        BorderRadius.circular(18),
         border: Border.all(
-          color:
-          color.withValues(
+          color: color.withValues(
             alpha: .20,
           ),
         ),
@@ -1212,8 +1224,7 @@ class _StatusCard extends StatelessWidget {
           Expanded(
             child: Column(
               crossAxisAlignment:
-              CrossAxisAlignment
-                  .start,
+              CrossAxisAlignment.start,
               children: [
                 Text(
                   title,

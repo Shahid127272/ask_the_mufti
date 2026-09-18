@@ -7,8 +7,6 @@ import '../search/search_screen.dart';
 import '../tools/tools_screen.dart';
 import '../ask_question/ask_question_screen.dart';
 
-import '../../core/theme.dart';
-
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
 
@@ -54,12 +52,11 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark =
-        Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     return Scaffold(
-      backgroundColor:
-      isDark ? Colors.black : AppTheme.background,
+      backgroundColor: colorScheme.surface,
 
       // =====================================================
       // 📱 BODY
@@ -67,13 +64,11 @@ class _MainScreenState extends State<MainScreen> {
 
       body: PageView(
         controller: _pageController,
-
         onPageChanged: (index) {
           setState(() {
             _index = index;
           });
         },
-
         children: _pages,
       ),
 
@@ -83,18 +78,11 @@ class _MainScreenState extends State<MainScreen> {
 
       floatingActionButton: FloatingActionButton(
         onPressed: _openAskQuestion,
-
         tooltip: 'Ask Question',
-
-        backgroundColor: AppTheme.primary,
-
-        foregroundColor: Colors.white,
-
+        backgroundColor: colorScheme.primary,
+        foregroundColor: colorScheme.onPrimary,
         elevation: 6,
-
-        // FULL CIRCLE
         shape: const CircleBorder(),
-
         child: const Icon(
           Icons.add_comment_rounded,
           size: 27,
@@ -116,19 +104,15 @@ class _MainScreenState extends State<MainScreen> {
         decoration: BoxDecoration(
           border: Border(
             top: BorderSide(
-              color: AppTheme.primary,
+              color: colorScheme.primary,
               width: 1.5,
             ),
           ),
         ),
-
         child: BottomAppBar(
-          color:
-          isDark ? Colors.black : AppTheme.background,
-
+          color: colorScheme.surface,
           child: SizedBox(
             height: 65,
-
             child: Row(
               children: [
                 _navItem(
@@ -136,25 +120,21 @@ class _MainScreenState extends State<MainScreen> {
                   label: 'Feed',
                   index: 0,
                 ),
-
                 _navItem(
                   icon: Icons.grid_view_rounded,
                   label: 'Category',
                   index: 1,
                 ),
-
                 _navItem(
                   icon: Icons.question_answer_rounded,
                   label: 'My Questions',
                   index: 2,
                 ),
-
                 _navItem(
                   icon: Icons.search_rounded,
                   label: 'Search',
                   index: 3,
                 ),
-
                 _navItem(
                   icon: Icons.build_circle_rounded,
                   label: 'Tools',
@@ -177,12 +157,13 @@ class _MainScreenState extends State<MainScreen> {
     required String label,
     required int index,
   }) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final active = _index == index;
 
     return Expanded(
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-
         onTap: () {
           if (_index == index) {
             return;
@@ -200,40 +181,28 @@ class _MainScreenState extends State<MainScreen> {
             curve: Curves.easeOut,
           );
         },
-
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-
           children: [
             Icon(
               icon,
-              color:
-              active
-                  ? AppTheme.primary
-                  : Colors.grey,
+              color: active
+                  ? colorScheme.primary
+                  : colorScheme.onSurfaceVariant,
             ),
 
-            const SizedBox(
-              height: 4,
-            ),
+            const SizedBox(height: 4),
 
             Text(
               label,
-
               maxLines: 1,
-
               overflow: TextOverflow.ellipsis,
-
-              style: TextStyle(
+              style: theme.textTheme.labelSmall?.copyWith(
                 fontSize: 11,
-
-                color:
-                active
-                    ? AppTheme.primary
-                    : Colors.grey,
-
-                fontWeight:
-                active
+                color: active
+                    ? colorScheme.primary
+                    : colorScheme.onSurfaceVariant,
+                fontWeight: active
                     ? FontWeight.w600
                     : FontWeight.normal,
               ),
@@ -258,32 +227,26 @@ class _AskAboveToolsLocation
   Offset getOffset(
       ScaffoldPrelayoutGeometry geometry,
       ) {
-    final scaffoldWidth =
-        geometry.scaffoldSize.width;
+    final scaffoldWidth = geometry.scaffoldSize.width;
 
-    final fabSize =
-        geometry.floatingActionButtonSize;
+    final fabSize = geometry.floatingActionButtonSize;
 
     // =========================================================
     // TOOLS 5TH NAVIGATION ITEM HAI
     // ISKA CENTER SCREEN WIDTH KA 90% HAI
     // =========================================================
 
-    final toolsCenterX =
-        scaffoldWidth * 0.9;
+    final toolsCenterX = scaffoldWidth * 0.9;
 
-    final x =
-        toolsCenterX -
-            (fabSize.width / 2);
+    final x = toolsCenterX - (fabSize.width / 2);
 
     // =========================================================
     // BOTTOM NAVIGATION KE UPAR FAB
     // =========================================================
 
-    final y =
-        geometry.contentBottom -
-            fabSize.height -
-            8;
+    final y = geometry.contentBottom -
+        fabSize.height -
+        8;
 
     return Offset(
       x,
@@ -292,6 +255,5 @@ class _AskAboveToolsLocation
   }
 
   @override
-  String toString() =>
-      '_AskAboveToolsLocation';
+  String toString() => '_AskAboveToolsLocation';
 }

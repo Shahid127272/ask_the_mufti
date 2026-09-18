@@ -6,9 +6,13 @@ class DonationWallScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Supporters")),
+      appBar: AppBar(
+        title: const Text("Supporters"),
+      ),
 
       body: StreamBuilder(
         stream: FirebaseFirestore.instance
@@ -17,26 +21,39 @@ class DonationWallScreen extends StatelessWidget {
             .snapshots(),
 
         builder: (context, snapshot) {
-
           if (!snapshot.hasData) {
-            return const Center(child: CircularProgressIndicator());
+            return Center(
+              child: CircularProgressIndicator(
+                color: colorScheme.primary,
+              ),
+            );
           }
 
           final docs = snapshot.data!.docs;
 
           return ListView.builder(
             itemCount: docs.length,
-            itemBuilder: (context, i){
-
+            itemBuilder: (context, i) {
               final d = docs[i];
 
-              final name = d["hideName"] ? "Anonymous" : d["name"];
+              final name =
+              d["hideName"] ? "Anonymous" : d["name"];
+
               final amount = d["amount"];
 
               return ListTile(
-                leading: const Icon(Icons.favorite, color: Colors.red),
+                leading: Icon(
+                  Icons.favorite,
+                  color: colorScheme.primary,
+                ),
                 title: Text(name),
-                trailing: Text("₹$amount"),
+                trailing: Text(
+                  "₹$amount",
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: colorScheme.primary,
+                  ),
+                ),
               );
             },
           );

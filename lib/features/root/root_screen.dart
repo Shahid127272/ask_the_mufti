@@ -122,8 +122,8 @@ class _RootScreenState extends State<RootScreen> {
               isGoogleUser;
 
       // --------------------------------------------------------
-// PHONE VERIFICATION
-// --------------------------------------------------------
+      // PHONE VERIFICATION
+      // --------------------------------------------------------
 
       final phoneVerified =
           freshUser.providerData.any(
@@ -133,9 +133,9 @@ class _RootScreenState extends State<RootScreen> {
               freshUser.phoneNumber != null &&
               freshUser.phoneNumber!.trim().isNotEmpty;
 
-// --------------------------------------------------------
-// SCREEN NAME
-// --------------------------------------------------------
+      // --------------------------------------------------------
+      // SCREEN NAME
+      // --------------------------------------------------------
 
       final screenName =
           data['screenName']
@@ -146,18 +146,18 @@ class _RootScreenState extends State<RootScreen> {
       final hasScreenName =
           screenName.length >= 3;
 
-// --------------------------------------------------------
-// FINAL PROFILE SETUP STATUS
-// --------------------------------------------------------
+      // --------------------------------------------------------
+      // FINAL PROFILE SETUP STATUS
+      // --------------------------------------------------------
 
       final setupCompleted =
           data['profileSetupCompleted'] == true;
 
-// ========================================================
-// IMPORTANT
-//
-// User can enter MainScreen ONLY when ALL are complete.
-// ========================================================
+      // ========================================================
+      // IMPORTANT
+      //
+      // User can enter MainScreen ONLY when ALL are complete.
+      // ========================================================
 
       final profileReady =
           emailVerified &&
@@ -172,9 +172,9 @@ class _RootScreenState extends State<RootScreen> {
         _loading = false;
       });
 
-// --------------------------------------------------------
-// ROLE LISTENER
-// --------------------------------------------------------
+      // --------------------------------------------------------
+      // ROLE LISTENER
+      // --------------------------------------------------------
 
       if (profileReady) {
         context
@@ -214,6 +214,9 @@ class _RootScreenState extends State<RootScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     final user =
         FirebaseAuth.instance.currentUser;
 
@@ -230,9 +233,11 @@ class _RootScreenState extends State<RootScreen> {
     // ==========================================================
 
     if (_loading) {
-      return const Scaffold(
+      return Scaffold(
         body: Center(
-          child: CircularProgressIndicator(),
+          child: CircularProgressIndicator(
+            color: colorScheme.primary,
+          ),
         ),
       );
     }

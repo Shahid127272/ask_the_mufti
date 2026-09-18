@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+
 import '../../models/app_user.dart';
 import '../../services/user_management_service.dart';
+import '../../core/app_scaffold.dart';
 import '../admin/widgets/role_badge.dart';
 
 class ManageUsersScreen extends StatefulWidget {
@@ -14,7 +16,6 @@ class _ManageUsersScreenState extends State<ManageUsersScreen> {
   final UserManagementService _service = UserManagementService();
 
   String _getDisplayName(AppUser user) {
-
     if (user.displayName != null &&
         user.displayName!.trim().isNotEmpty) {
       return user.displayName!;
@@ -28,12 +29,16 @@ class _ManageUsersScreenState extends State<ManageUsersScreen> {
   }
 
   void _showDeleteDialog(AppUser user) {
+    final theme = Theme.of(context);
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete User?'),
         content: Text(
-          'Are you sure you want to delete ${_getDisplayName(user)}?\n\nThis action cannot be undone.',
+          'Are you sure you want to delete '
+              '${_getDisplayName(user)}?\n\n'
+              'This action cannot be undone.',
         ),
         actions: [
           TextButton(
@@ -42,7 +47,7 @@ class _ManageUsersScreenState extends State<ManageUsersScreen> {
           ),
           TextButton(
             style: TextButton.styleFrom(
-              foregroundColor: Colors.red,
+              foregroundColor: theme.colorScheme.error,
             ),
             onPressed: () {
               _service.deleteUser(user.uid);
@@ -57,20 +62,11 @@ class _ManageUsersScreenState extends State<ManageUsersScreen> {
 
   @override
   Widget build(BuildContext context) {
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Manage Users'),
-        centerTitle: true,
-      ),
-
+    return AppScaffold(
       body: StreamBuilder<List<AppUser>>(
         stream: _service.watchAllUsers(),
-
         builder: (context, snapshot) {
-
-          if (snapshot.connectionState ==
-              ConnectionState.waiting) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(
               child: CircularProgressIndicator(),
             );
@@ -92,100 +88,88 @@ class _ManageUsersScreenState extends State<ManageUsersScreen> {
 
           return ListView.separated(
             padding: const EdgeInsets.all(8),
-
             itemCount: users.length,
-
-            separatorBuilder: (_, __) =>
-            const Divider(),
-
+            separatorBuilder: (_, __) => const Divider(),
             itemBuilder: (context, index) {
-
               final user = users[index];
-
-              final bool isOwner =
-                  user.role == "owner";
+              final bool isOwner = user.role == "owner";
 
               return ListTile(
-
-                leading: RoleBadge(role: user.role),
-
+                leading: RoleBadge(
+                  role: user.role,
+                ),
                 title: Text(
                   _getDisplayName(user),
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-
-                subtitle:
-                Text(user.email ?? 'No Email'),
-
+                subtitle: Text(
+                  user.email ?? 'No Email',
+                ),
                 trailing: PopupMenuButton<String>(
-
                   onSelected: (value) {
-
                     if (value == 'delete') {
                       _showDeleteDialog(user);
                     } else {
                       _service.updateUserRole(
-                          user.uid, value);
+                        user.uid,
+                        value,
+                      );
                     }
-
                   },
-
                   itemBuilder: (context) {
-
                     final items =
                     <PopupMenuEntry<String>>[];
 
-                    /// Promote to Admin
-                    if (!isOwner &&
-                        user.role != 'admin') {
+                    if (!isOwner && user.role != 'admin') {
                       items.add(
                         const PopupMenuItem(
                           value: 'admin',
                           child: Text(
-                              'Promote to Admin'),
+                            'Promote to Admin',
+                          ),
                         ),
                       );
                     }
 
-                    /// Promote to Mufti
-                    if (!isOwner &&
-                        user.role != 'mufti') {
+                    if (!isOwner && user.role != 'mufti') {
                       items.add(
                         const PopupMenuItem(
                           value: 'mufti',
                           child: Text(
-                              'Promote to Mufti'),
+                            'Promote to Mufti',
+                          ),
                         ),
                       );
                     }
 
-                    /// Demote to User
-                    if (!isOwner &&
-                        user.role != 'user') {
+                    if (!isOwner && user.role != 'user') {
                       items.add(
                         const PopupMenuItem(
                           value: 'user',
                           child: Text(
-                              'Demote to User'),
+                            'Demote to User',
+                          ),
                         ),
                       );
                     }
 
-                    /// Delete User
                     if (!isOwner) {
                       items.add(
                         const PopupMenuDivider(),
                       );
 
                       items.add(
-                        const PopupMenuItem(
+                        PopupMenuItem(
                           value: 'delete',
                           child: Text(
                             'Delete User',
                             style: TextStyle(
-                              color: Colors.red,
+                              color:
+                              Theme.of(context)
+                                  .colorScheme
+                                  .error,
                             ),
                           ),
                         ),

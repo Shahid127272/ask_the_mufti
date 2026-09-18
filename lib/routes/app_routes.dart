@@ -27,32 +27,52 @@ class AppRoutes {
   // ============================================================
 
   static const String home = AppConstants.routeHome;
-  static const String mainHome = AppConstants.routeMainHome;
+
+  static const String mainHome =
+      AppConstants.routeMainHome;
+
   static const String notifications =
       AppConstants.routeNotifications;
+
   static const String answerDetail =
       AppConstants.routeAnswerDetail;
-  static const String login = AppConstants.routeLogin;
+
+  static const String login =
+      AppConstants.routeLogin;
+
   static const String phoneLogin =
       AppConstants.routePhoneLogin;
-  static const String signup = AppConstants.routeSignup;
+
+  static const String signup =
+      AppConstants.routeSignup;
+
   static const String editProfile =
       AppConstants.routeEditProfile;
+
   static const String bookmarks =
       AppConstants.routeBookmarks;
+
   static const String myQuestions =
       AppConstants.routeMyQuestions;
+
   static const String settings =
       AppConstants.routeSettings;
-  static const String search = AppConstants.routeSearch;
+
+  static const String search =
+      AppConstants.routeSearch;
+
   static const String muftiPanel =
       AppConstants.routeMuftiPanel;
+
   static const String adminDashboard =
       AppConstants.routeAdminDashboard;
+
   static const String adminStats =
       AppConstants.routeAdminStats;
+
   static const String manageMufti =
       AppConstants.routeManageMufti;
+
   static const String ownerDashboard =
       AppConstants.routeOwnerDashboard;
 
@@ -163,43 +183,46 @@ class AppRoutes {
       RouteSettings routeSettings,
       ) {
     return MaterialPageRoute(
-      builder: (_) => Scaffold(
-        body: Center(
-          child: Column(
-            mainAxisAlignment:
-            MainAxisAlignment.center,
-            children: [
-              const Icon(
-                Icons.error_outline,
-                size: 64,
-                color: Colors.grey,
-              ),
+      builder: (context) {
+        final theme = Theme.of(context);
+        final colorScheme = theme.colorScheme;
 
-              const SizedBox(height: 16),
-
-              const Text(
-                '404',
-                style: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
+        return Scaffold(
+          body: Center(
+            child: Column(
+              mainAxisAlignment:
+              MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.error_outline,
+                  size: 64,
+                  color: colorScheme.outline,
                 ),
-              ),
 
-              const SizedBox(height: 8),
+                const SizedBox(height: 16),
 
-              Text(
-                'Page not found: '
-                    '${routeSettings.name ?? "unknown"}',
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey,
+                Text(
+                  '404',
+                  style: theme.textTheme.displaySmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
-            ],
+
+                const SizedBox(height: 8),
+
+                Text(
+                  'Page not found: '
+                      '${routeSettings.name ?? "unknown"}',
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
@@ -236,6 +259,9 @@ class _AnswerDetailLoader
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return FutureBuilder<QuestionModel?>(
       future: _loadQuestion(),
       builder: (context, snapshot) {
@@ -245,10 +271,11 @@ class _AnswerDetailLoader
 
         if (snapshot.connectionState !=
             ConnectionState.done) {
-          return const Scaffold(
+          return Scaffold(
             body: Center(
-              child:
-              CircularProgressIndicator(),
+              child: CircularProgressIndicator(
+                color: colorScheme.primary,
+              ),
             ),
           );
         }
@@ -264,26 +291,27 @@ class _AnswerDetailLoader
                 mainAxisAlignment:
                 MainAxisAlignment.center,
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.error_outline,
-                    color: Colors.red,
+                    color: colorScheme.error,
                     size: 48,
                   ),
 
                   const SizedBox(height: 12),
 
-                  const Text(
+                  Text(
                     'Sawal load nahi ho saka',
+                    style: theme.textTheme.titleMedium,
                   ),
 
                   const SizedBox(height: 12),
 
                   ElevatedButton(
                     onPressed: () =>
-                        Navigator.of(context)
-                            .pop(),
-                    child:
-                    const Text('Wapas Jao'),
+                        Navigator.of(context).pop(),
+                    child: const Text(
+                      'Wapas Jao',
+                    ),
                   ),
                 ],
               ),
@@ -295,8 +323,7 @@ class _AnswerDetailLoader
         // QUESTION NOT FOUND
         // ======================================================
 
-        final question =
-            snapshot.data;
+        final question = snapshot.data;
 
         if (question == null) {
           return const RootScreen();

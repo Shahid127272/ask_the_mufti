@@ -8,10 +8,13 @@ class ToolsScreen extends StatelessWidget {
   const ToolsScreen({super.key});
 
   static Widget buildTile({
+    required BuildContext context,
     required IconData icon,
     required String title,
     required String subtitle,
   }) {
+    final theme = Theme.of(context);
+
     return ListTile(
       leading: Icon(
         icon,
@@ -19,16 +22,18 @@ class ToolsScreen extends StatelessWidget {
       ),
       title: Text(
         title,
-        style: const TextStyle(
+        style: theme.textTheme.titleMedium?.copyWith(
           fontWeight: FontWeight.w600,
         ),
       ),
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(subtitle),
+          Text(
+            subtitle,
+            style: theme.textTheme.bodyMedium,
+          ),
           const SizedBox(height: 6),
-
           Container(
             padding: const EdgeInsets.symmetric(
               horizontal: 10,
@@ -38,10 +43,9 @@ class ToolsScreen extends StatelessWidget {
               color: Colors.orange.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(20),
             ),
-            child: const Text(
+            child: Text(
               'COMING SOON',
-              style: TextStyle(
-                fontSize: 11,
+              style: theme.textTheme.labelSmall?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: Colors.orange,
                 letterSpacing: 0.8,
@@ -59,12 +63,13 @@ class ToolsScreen extends StatelessWidget {
 
   Widget _reviewsSuggestionsTile(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     return ListTile(
       leading: Icon(
         Icons.rate_review_outlined,
         size: 28,
-        color: theme.colorScheme.primary,
+        color: colorScheme.primary,
       ),
       title: Text(
         'Reviews & Suggestions',
@@ -72,13 +77,14 @@ class ToolsScreen extends StatelessWidget {
           fontWeight: FontWeight.w600,
         ),
       ),
-      subtitle: const Text(
+      subtitle: Text(
         'Rate the app or send us your suggestions',
+        style: theme.textTheme.bodyMedium,
       ),
       trailing: Icon(
         Icons.arrow_forward_ios,
         size: 16,
-        color: theme.colorScheme.primary,
+        color: colorScheme.primary,
       ),
       onTap: () {
         Navigator.pushNamed(
@@ -100,7 +106,7 @@ class ToolsScreen extends StatelessWidget {
         'Check out this amazing Islamic app 📱\n\n'
             'Ask The Mufti — Islamic questions and answers.\n\n'
             'Download now and benefit:\n'
-            'https://yourapp.link',
+            'https://github.com/Shahid127272/ask_the_mufti/releases/latest/download/app-release.apk',
       ),
     );
   }
@@ -111,64 +117,88 @@ class ToolsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return AppScaffold(
       body: ListView(
         children: [
           buildTile(
+            context: context,
             icon: Icons.calendar_today,
             title: 'Hijri Date',
             subtitle: 'Hijri date information',
           ),
 
-          const Divider(),
+          Divider(
+            color: theme.dividerColor,
+          ),
 
           buildTile(
+            context: context,
             icon: Icons.brightness_3,
             title: 'Tasbeeh Counter',
             subtitle: 'Digital tasbeeh counter',
           ),
 
-          const Divider(),
+          Divider(
+            color: theme.dividerColor,
+          ),
 
           buildTile(
+            context: context,
             icon: Icons.water_drop,
             title: 'Wudu Guide',
             subtitle: 'Step by step wudu method',
           ),
 
-          const Divider(),
+          Divider(
+            color: theme.dividerColor,
+          ),
 
           buildTile(
+            context: context,
             icon: Icons.mosque,
             title: 'Prayer Rakats',
             subtitle: 'Rakat guide for 5 daily prayers',
           ),
 
-          const Divider(),
+          Divider(
+            color: theme.dividerColor,
+          ),
 
           buildTile(
+            context: context,
             icon: Icons.explore,
             title: 'Qibla Direction',
             subtitle: 'Find Qibla direction',
           ),
 
-          const Divider(),
+          Divider(
+            color: theme.dividerColor,
+          ),
 
           buildTile(
+            context: context,
             icon: Icons.location_on,
             title: 'Masjid Finder',
             subtitle: 'Find nearby masjids',
           ),
 
-          const Divider(),
+          Divider(
+            color: theme.dividerColor,
+          ),
 
           buildTile(
+            context: context,
             icon: Icons.calculate,
             title: 'Zakat Calculator',
             subtitle: 'Calculate your zakat easily',
           ),
 
-          const Divider(),
+          Divider(
+            color: theme.dividerColor,
+          ),
 
           // ====================================================
           // REVIEWS & SUGGESTIONS
@@ -176,29 +206,34 @@ class ToolsScreen extends StatelessWidget {
 
           _reviewsSuggestionsTile(context),
 
-          const Divider(),
+          Divider(
+            color: theme.dividerColor,
+          ),
 
           // ====================================================
           // SHARE TO FRIENDS
           // ====================================================
 
           ListTile(
-            leading: const Icon(
+            leading: Icon(
               Icons.share,
               size: 28,
+              color: colorScheme.primary,
             ),
-            title: const Text(
+            title: Text(
               'Share to Friends',
-              style: TextStyle(
+              style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w600,
               ),
             ),
-            subtitle: const Text(
+            subtitle: Text(
               'Invite your friends to use this app',
+              style: theme.textTheme.bodyMedium,
             ),
-            trailing: const Icon(
+            trailing: Icon(
               Icons.arrow_forward_ios,
               size: 16,
+              color: colorScheme.primary,
             ),
             onTap: _shareApp,
           ),

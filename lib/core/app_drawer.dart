@@ -1,4 +1,5 @@
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -27,7 +28,6 @@ class AppDrawer extends StatelessWidget {
       child: StreamBuilder<DocumentSnapshot>(
         stream: ProfileService().profileStream(),
         builder: (context, snapshot) {
-
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(
               child: CircularProgressIndicator(
@@ -50,8 +50,7 @@ class AppDrawer extends StatelessWidget {
 
           return Column(
             children: [
-
-              /// ✅ SIMPLE HEADER (NO CURVE)
+              /// ================= SIMPLE HEADER =================
               DrawerSimpleHeader(
                 name: name,
                 photo: photo,
@@ -60,12 +59,24 @@ class AppDrawer extends StatelessWidget {
 
               const SizedBox(height: 20),
 
-              /// ROLE SWITCH
+              /// ================= ROLE SWITCH =================
               if (roles.isNotEmpty)
                 ListTile(
-                  leading: const Icon(Icons.switch_account),
-                  title: Text(activeRole.toUpperCase()),
-                  trailing: const Icon(Icons.keyboard_arrow_down),
+                  leading: Icon(
+                    Icons.switch_account,
+                    color: theme.colorScheme.primary,
+                  ),
+                  title: Text(
+                    activeRole.toUpperCase(),
+                    style: TextStyle(
+                      color: theme.colorScheme.onSurface,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  trailing: Icon(
+                    Icons.keyboard_arrow_down,
+                    color: theme.colorScheme.onSurface,
+                  ),
                   onTap: () {
                     _showRoleSelector(
                       context,
@@ -76,14 +87,15 @@ class AppDrawer extends StatelessWidget {
                   },
                 ),
 
-              const Divider(),
+              Divider(
+                color: theme.dividerColor,
+              ),
 
-              /// MENU
+              /// ================= MENU =================
               Expanded(
                 child: ListView(
                   padding: EdgeInsets.zero,
                   children: [
-
                     _item(
                       context,
                       icon: Icons.bookmark_border,
@@ -108,9 +120,11 @@ class AppDrawer extends StatelessWidget {
                 ),
               ),
 
-              const Divider(),
+              Divider(
+                color: theme.dividerColor,
+              ),
 
-              /// LOGOUT
+              /// ================= LOGOUT =================
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: ElevatedButton.icon(
@@ -123,7 +137,6 @@ class AppDrawer extends StatelessWidget {
                   icon: const Icon(Icons.logout),
                   label: const Text("Logout"),
                   onPressed: () async {
-
                     await FirebaseAuth.instance.signOut();
 
                     if (!context.mounted) return;
@@ -144,23 +157,47 @@ class AppDrawer extends StatelessWidget {
     );
   }
 
-  /// ROLE SELECTOR
+  /// ================= ROLE SELECTOR =================
+
   void _showRoleSelector(
       BuildContext context,
       RoleViewController controller,
       List<String> roles,
       String activeRole,
       ) {
+    final theme = Theme.of(context);
+
     showModalBottomSheet(
       context: context,
+      backgroundColor: theme.colorScheme.surface,
       builder: (_) {
         return ListView(
           shrinkWrap: true,
           children: roles.map((r) {
+            final isActive = r == activeRole;
+
             return ListTile(
-              title: Text(r.toUpperCase()),
-              trailing: r == activeRole
-                  ? const Icon(Icons.check)
+              leading: Icon(
+                _panelIcon(r),
+                color: isActive
+                    ? theme.colorScheme.primary
+                    : theme.colorScheme.onSurface,
+              ),
+              title: Text(
+                r.toUpperCase(),
+                style: TextStyle(
+                  color: isActive
+                      ? theme.colorScheme.primary
+                      : theme.colorScheme.onSurface,
+                  fontWeight:
+                  isActive ? FontWeight.w700 : FontWeight.w500,
+                ),
+              ),
+              trailing: isActive
+                  ? Icon(
+                Icons.check,
+                color: theme.colorScheme.primary,
+              )
                   : null,
               onTap: () {
                 controller.setRole(r);
@@ -172,6 +209,8 @@ class AppDrawer extends StatelessWidget {
       },
     );
   }
+
+  /// ================= MENU ITEM =================
 
   Widget _item(
       BuildContext context, {
@@ -188,49 +227,71 @@ class AppDrawer extends StatelessWidget {
       },
       borderRadius: BorderRadius.circular(10),
       child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+        margin: const EdgeInsets.symmetric(
+          horizontal: 10,
+          vertical: 4,
+        ),
+        padding: const EdgeInsets.symmetric(
+          horizontal: 10,
+          vertical: 12,
+        ),
         child: Row(
           children: [
-            Icon(icon, color: theme.iconTheme.color),
+            Icon(
+              icon,
+              color: theme.colorScheme.onSurface,
+            ),
             const SizedBox(width: 12),
-            Text(title, style: theme.textTheme.bodyMedium),
+            Text(
+              title,
+              style: theme.textTheme.bodyMedium,
+            ),
           ],
         ),
       ),
     );
   }
 
+  /// ================= PANEL ROUTE =================
+
   static String _panelRoute(String role) {
     switch (role) {
       case "owner":
       case "admin":
         return AppRoutes.adminDashboard;
+
       case "mufti":
         return AppRoutes.muftiPanel;
+
       default:
         return AppRoutes.home;
     }
   }
 
+  /// ================= PANEL ICON =================
+
   static IconData _panelIcon(String role) {
     switch (role) {
       case 'owner':
         return Icons.workspace_premium;
+
       case 'admin':
         return Icons.admin_panel_settings;
+
       case 'mufti':
         return Icons.menu_book;
+
       default:
         return Icons.dashboard;
     }
   }
 }
 
-/// ================= SIMPLE HEADER =================
+/// ===============================================================
+/// DRAWER SIMPLE HEADER
+/// ===============================================================
 
 class DrawerSimpleHeader extends StatelessWidget {
-
   final String name;
   final String? photo;
   final String role;
@@ -242,56 +303,67 @@ class DrawerSimpleHeader extends StatelessWidget {
     required this.role,
   });
 
-  Future<void> _pickPhoto(BuildContext context) async {
+  /// ================= PICK PROFILE PHOTO =================
 
+  Future<void> _pickPhoto(BuildContext context) async {
     final user = FirebaseAuth.instance.currentUser;
+
     if (user == null) return;
 
     final picker = ImagePicker();
-    final service = ProfileService();
 
-    await service.updateProfile(name: '...');
-
-    final XFile? picked =
-    await picker.pickImage(source: ImageSource.gallery);
+    final XFile? picked = await picker.pickImage(
+      source: ImageSource.gallery,
+    );
 
     if (picked == null) return;
 
     final file = File(picked.path);
 
-    final fileName = DateTime.now().millisecondsSinceEpoch.toString();
+    final fileName =
+    DateTime.now().millisecondsSinceEpoch.toString();
 
-    await ProfileService().uploadProfilePhoto(file, fileName);
+    await ProfileService().uploadProfilePhoto(
+      file,
+      fileName,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-
     final theme = Theme.of(context);
 
     return Container(
       color: theme.colorScheme.primary,
-      padding: const EdgeInsets.fromLTRB(16, 40, 16, 16),
-
+      padding: const EdgeInsets.fromLTRB(
+        16,
+        40,
+        16,
+        16,
+      ),
       child: Row(
         children: [
+          /// ================= PROFILE + CAMERA =================
 
-          /// 👤 PROFILE + CAMERA
           GestureDetector(
             onTap: () => _pickPhoto(context),
             child: Stack(
               children: [
-
                 CircleAvatar(
                   radius: 30,
-                  backgroundColor: Colors.white,
+                  backgroundColor: theme.colorScheme.surface,
                   backgroundImage:
                   photo != null ? NetworkImage(photo!) : null,
                   child: photo == null
-                      ? const Icon(Icons.person, color: Colors.grey)
+                      ? Icon(
+                    Icons.person,
+                    color: theme.colorScheme.onSurface
+                        .withValues(alpha: 0.55),
+                  )
                       : null,
                 ),
 
+                /// CAMERA BUTTON
                 Positioned(
                   bottom: 0,
                   right: 0,
@@ -314,7 +386,8 @@ class DrawerSimpleHeader extends StatelessWidget {
 
           const SizedBox(width: 12),
 
-          /// 📝 NAME
+          /// ================= NAME =================
+
           Expanded(
             child: Text(
               name,
@@ -328,9 +401,13 @@ class DrawerSimpleHeader extends StatelessWidget {
             ),
           ),
 
-          /// ✏️ EDIT
+          /// ================= EDIT =================
+
           IconButton(
-            icon: const Icon(Icons.edit, color: Colors.white),
+            icon: const Icon(
+              Icons.edit,
+              color: Colors.white,
+            ),
             onPressed: () {
               Navigator.pushNamed(
                 context,

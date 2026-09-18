@@ -1020,8 +1020,9 @@ class _AccountSetupScreenState extends State<AccountSetupScreen> {
     messenger.showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor:
-        error ? Colors.red : Colors.green,
+        backgroundColor: error
+            ? Theme.of(context).colorScheme.error
+            : Theme.of(context).colorScheme.primary,
       ),
     );
   }
@@ -1070,22 +1071,29 @@ class _AccountSetupScreenState extends State<AccountSetupScreen> {
 
               const SizedBox(height: 20),
 
-              const Text(
+              Text(
                 'Complete Your Account',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 25,
+                style: Theme.of(context)
+                    .textTheme
+                    .headlineSmall
+                    ?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
               ),
 
               const SizedBox(height: 8),
 
-              const Text(
+              Text(
                 'Complete the required account steps before using Ask The Mufti.',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Colors.grey,
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyMedium
+                    ?.copyWith(
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onSurfaceVariant,
                 ),
               ),
 
@@ -1186,7 +1194,9 @@ class _AccountSetupScreenState extends State<AccountSetupScreen> {
     return Container(
       height: 2,
       width: 25,
-      color: Colors.grey.shade300,
+      color: Theme.of(context)
+          .colorScheme
+          .outlineVariant,
     );
   }
 
@@ -1224,17 +1234,14 @@ class _AccountSetupScreenState extends State<AccountSetupScreen> {
         title: 'Verify Your Email',
         description:
         'Open the verification link sent to your email and then return here.',
-        buttonText:
-        _loading
+        buttonText: _loading
             ? 'Sending...'
             : 'Send Verification Email',
-        onPressed:
-        _loading
+        onPressed: _loading
             ? null
             : _sendEmailVerification,
         secondaryText: 'I Have Verified My Email',
-        secondaryPressed:
-        _loading
+        secondaryPressed: _loading
             ? null
             : _checkEmailVerification,
       );
@@ -1329,12 +1336,10 @@ class _AccountSetupScreenState extends State<AccountSetupScreen> {
           ),
         ],
       ),
-      buttonText:
-      _loading
+      buttonText: _loading
           ? 'Linking...'
           : 'Link Email',
-      onPressed:
-      _loading
+      onPressed: _loading
           ? null
           : _linkEmail,
     );
@@ -1400,12 +1405,10 @@ class _AccountSetupScreenState extends State<AccountSetupScreen> {
           ],
         ],
       ),
-      buttonText:
-      _verificationId == null
+      buttonText: _verificationId == null
           ? 'Send OTP'
           : 'Verify OTP',
-      onPressed:
-      _loading
+      onPressed: _loading
           ? null
           : (_verificationId == null
           ? _sendPhoneOtp
@@ -1437,8 +1440,7 @@ class _AccountSetupScreenState extends State<AccountSetupScreen> {
         ),
       ),
       buttonText: 'Complete Account',
-      onPressed:
-      _loading
+      onPressed: _loading
           ? null
           : _saveScreenName,
     );
@@ -1474,8 +1476,10 @@ class _AccountSetupScreenState extends State<AccountSetupScreen> {
             Text(
               title,
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 21,
+              style: Theme.of(context)
+                  .textTheme
+                  .titleLarge
+                  ?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -1485,8 +1489,13 @@ class _AccountSetupScreenState extends State<AccountSetupScreen> {
             Text(
               description,
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: Colors.grey,
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyMedium
+                  ?.copyWith(
+                color: Theme.of(context)
+                    .colorScheme
+                    .onSurfaceVariant,
               ),
             ),
 

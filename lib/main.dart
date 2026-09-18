@@ -93,13 +93,18 @@ class _AskTheMuftiAppState extends State<AskTheMuftiApp> {
   Widget build(BuildContext context) {
     final fonts = context.watch<FontProvider>();
     final themeProvider = context.watch<ThemeProvider>();
+    final roleController = context.watch<RoleViewController>();
+
+    final activeRole = roleController.activeRole.isEmpty
+        ? 'user'
+        : roleController.activeRole;
 
     return MaterialApp(
       navigatorKey: NotificationService.navigatorKey,
       debugShowCheckedModeBanner: false,
       title: 'Ask The Mufti',
-      theme: AppTheme.light,
-      darkTheme: AppTheme.dark,
+      theme: AppTheme.lightForRole(activeRole),
+      darkTheme: AppTheme.darkForRole(activeRole),
       themeMode: themeProvider.themeMode,
       home: const SplashVideoScreen(),
       routes: AppRoutes.routes,

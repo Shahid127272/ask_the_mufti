@@ -37,12 +37,15 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
       }) {
     if (!mounted) return;
 
+    final colorScheme = Theme.of(context).colorScheme;
+
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
           content: Text(msg),
-          backgroundColor: error ? Colors.red : Colors.green,
+          backgroundColor:
+          error ? colorScheme.error : colorScheme.primary,
         ),
       );
   }
@@ -201,6 +204,10 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final textTheme = theme.textTheme;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("Phone Login"),
@@ -213,30 +220,30 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(
+              Icon(
                 Icons.phone_android,
                 size: 60,
+                color: colorScheme.primary,
               ),
 
               const SizedBox(height: 20),
 
-              const Text(
+              Text(
                 "Sign in with your phone number",
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 18,
+                style: textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.w600,
                 ),
               ),
 
               const SizedBox(height: 8),
 
-              const Text(
+              Text(
                 "Enter your phone number and verify it "
                     "using the OTP.",
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Colors.grey,
+                style: textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
                 ),
               ),
 
@@ -320,11 +327,11 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                       ? _verifyOtp
                       : _sendOtp),
                   child: _loading
-                      ? const SizedBox(
+                      ? SizedBox(
                     height: 22,
                     width: 22,
                     child: CircularProgressIndicator(
-                      color: Colors.white,
+                      color: colorScheme.onPrimary,
                       strokeWidth: 2,
                     ),
                   )
@@ -332,8 +339,9 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                     _codeSent
                         ? "Verify OTP"
                         : "Send OTP",
-                    style: const TextStyle(
+                    style: textTheme.labelLarge?.copyWith(
                       fontSize: 16,
+                      color: colorScheme.onPrimary,
                     ),
                   ),
                 ),

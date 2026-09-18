@@ -403,25 +403,37 @@ class AuthService {
 
   Future<User?> signInWithGoogle() async {
     try {
-      final googleUser = await _google.signIn();
+      UserCredential userCredential;
 
-      if (googleUser == null) {
-        return null;
+      if (kIsWeb) {
+        // Web → Firebase's native Google popup flow.
+        final provider = GoogleAuthProvider();
+
+        userCredential = await _auth.signInWithPopup(
+          provider,
+        );
+      } else {
+        // Android / iOS → google_sign_in plugin.
+        final googleUser = await _google.signIn();
+
+        if (googleUser == null) {
+          return null;
+        }
+
+        final googleAuth =
+        await googleUser.authentication;
+
+        final credential =
+        GoogleAuthProvider.credential(
+          accessToken: googleAuth.accessToken,
+          idToken: googleAuth.idToken,
+        );
+
+        userCredential =
+        await _auth.signInWithCredential(
+          credential,
+        );
       }
-
-      final googleAuth =
-      await googleUser.authentication;
-
-      final credential =
-      GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
-      );
-
-      final userCredential =
-      await _auth.signInWithCredential(
-        credential,
-      );
 
       final user = userCredential.user;
 

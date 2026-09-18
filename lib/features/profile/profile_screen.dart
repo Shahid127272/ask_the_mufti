@@ -73,23 +73,24 @@ class ProfileScreen extends StatelessWidget {
   // ============================================================
 
   Widget _buildLoggedOutUI(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(
+          Icon(
             Icons.account_circle,
             size: 80,
-            color: Colors.grey,
+            color: colorScheme.onSurfaceVariant,
           ),
 
           const SizedBox(height: 24),
 
-          const Text(
+          Text(
             'Please login to see your profile',
-            style: TextStyle(
-              fontSize: 18,
-            ),
+            style: theme.textTheme.titleMedium,
           ),
 
           const SizedBox(height: 32),
@@ -132,13 +133,15 @@ class ProfileScreen extends StatelessWidget {
       BuildContext context,
       User user,
       ) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return StreamBuilder<
         DocumentSnapshot<Map<String, dynamic>>>(
       stream: FirebaseFirestore.instance
           .collection('users')
           .doc(user.uid)
           .snapshots(),
-
       builder: (context, snapshot) {
         final data = snapshot.data?.data();
 
@@ -157,8 +160,7 @@ class ProfileScreen extends StatelessWidget {
             ? user.displayName!.trim()
             : 'User');
 
-        final email =
-            user.email ?? 'No email';
+        final email = user.email ?? 'No email';
 
         final uid = user.uid;
 
@@ -167,8 +169,7 @@ class ProfileScreen extends StatelessWidget {
             user.emailVerified ||
                 user.providerData.any(
                       (provider) =>
-                  provider.providerId ==
-                      'google.com',
+                  provider.providerId == 'google.com',
                 );
 
         final phoneVerified =
@@ -186,27 +187,22 @@ class ProfileScreen extends StatelessWidget {
               elevation: 1,
               child: Padding(
                 padding: const EdgeInsets.all(20),
-
                 child: Row(
                   children: [
                     // PROFILE PHOTO
                     GestureDetector(
                       onTap: () => _pickPhoto(user),
-
                       child: Stack(
                         children: [
                           CircleAvatar(
                             radius: 32,
-
                             backgroundImage:
                             user.photoURL != null
                                 ? NetworkImage(
                               user.photoURL!,
                             )
                                 : null,
-
-                            child:
-                            user.photoURL == null
+                            child: user.photoURL == null
                                 ? const Icon(
                               Icons.person,
                               size: 36,
@@ -217,21 +213,16 @@ class ProfileScreen extends StatelessWidget {
                           Positioned(
                             bottom: 0,
                             right: 0,
-
                             child: Container(
-                              decoration:
-                              const BoxDecoration(
+                              decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                color:
-                                Color(0xFF0E7A5F),
+                                color: colorScheme.primary,
                               ),
-
                               padding:
                               const EdgeInsets.all(4),
-
-                              child: const Icon(
+                              child: Icon(
                                 Icons.camera_alt,
-                                color: Colors.white,
+                                color: colorScheme.onPrimary,
                                 size: 16,
                               ),
                             ),
@@ -246,7 +237,6 @@ class ProfileScreen extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment:
                         CrossAxisAlignment.start,
-
                         children: [
                           Row(
                             children: [
@@ -257,12 +247,11 @@ class ProfileScreen extends StatelessWidget {
                                       child: Text(
                                         displayName,
                                         overflow:
-                                        TextOverflow
-                                            .ellipsis,
-
-                                        style:
-                                        const TextStyle(
-                                          fontSize: 18,
+                                        TextOverflow.ellipsis,
+                                        style: theme
+                                            .textTheme
+                                            .titleMedium
+                                            ?.copyWith(
                                           fontWeight:
                                           FontWeight.bold,
                                         ),
@@ -272,9 +261,10 @@ class ProfileScreen extends StatelessWidget {
                                     const SizedBox(width: 6),
 
                                     if (emailVerified)
-                                      const Icon(
+                                      Icon(
                                         Icons.verified,
-                                        color: Colors.blue,
+                                        color:
+                                        colorScheme.primary,
                                         size: 18,
                                       ),
                                   ],
@@ -282,12 +272,8 @@ class ProfileScreen extends StatelessWidget {
                               ),
 
                               IconButton(
-                                icon:
-                                const Icon(Icons.edit),
-
-                                tooltip:
-                                "Edit Profile",
-
+                                icon: const Icon(Icons.edit),
+                                tooltip: "Edit Profile",
                                 onPressed: () {
                                   Navigator.push(
                                     context,
@@ -303,7 +289,10 @@ class ProfileScreen extends StatelessWidget {
 
                           const SizedBox(height: 4),
 
-                          Text(email),
+                          Text(
+                            email,
+                            style: theme.textTheme.bodyMedium,
+                          ),
 
                           const SizedBox(height: 6),
 
@@ -316,8 +305,9 @@ class ProfileScreen extends StatelessWidget {
                                     : Icons.phone_disabled,
                                 size: 15,
                                 color: phoneVerified
-                                    ? Colors.green
-                                    : Colors.grey,
+                                    ? colorScheme.primary
+                                    : colorScheme
+                                    .onSurfaceVariant,
                               ),
 
                               const SizedBox(width: 5),
@@ -326,12 +316,12 @@ class ProfileScreen extends StatelessWidget {
                                 phoneVerified
                                     ? 'Phone verified'
                                     : 'Phone not verified',
-
-                                style: TextStyle(
-                                  fontSize: 12,
+                                style: theme.textTheme.bodySmall
+                                    ?.copyWith(
                                   color: phoneVerified
-                                      ? Colors.green
-                                      : Colors.grey,
+                                      ? colorScheme.primary
+                                      : colorScheme
+                                      .onSurfaceVariant,
                                 ),
                               ),
                             ],
@@ -341,9 +331,10 @@ class ProfileScreen extends StatelessWidget {
 
                           Text(
                             "UID: $uid",
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey,
+                            style: theme.textTheme.bodySmall
+                                ?.copyWith(
+                              color:
+                              colorScheme.onSurfaceVariant,
                             ),
                           ),
                         ],
@@ -356,12 +347,12 @@ class ProfileScreen extends StatelessWidget {
 
             const SizedBox(height: 20),
 
-            const Align(
+            Align(
               alignment: Alignment.centerLeft,
               child: Text(
                 'Your activity will appear here',
-                style: TextStyle(
-                  color: Colors.grey,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
                 ),
               ),
             ),
@@ -377,19 +368,15 @@ class ProfileScreen extends StatelessWidget {
                 leading: const Icon(
                   Icons.question_answer,
                 ),
-
-                title:
-                const Text("My Questions"),
-
+                title: const Text("My Questions"),
                 subtitle: const Text(
                   "View questions you asked",
                 ),
-
-                trailing: const Icon(
+                trailing: Icon(
                   Icons.arrow_forward_ios,
                   size: 16,
+                  color: colorScheme.onSurfaceVariant,
                 ),
-
                 onTap: () {
                   Navigator.push(
                     context,
@@ -408,21 +395,18 @@ class ProfileScreen extends StatelessWidget {
 
             Card(
               child: ListTile(
-                leading:
-                const Icon(Icons.bookmark),
-
-                title:
-                const Text("Bookmarks"),
-
+                leading: const Icon(
+                  Icons.bookmark,
+                ),
+                title: const Text("Bookmarks"),
                 subtitle: const Text(
                   "Your saved answers",
                 ),
-
-                trailing: const Icon(
+                trailing: Icon(
                   Icons.arrow_forward_ios,
                   size: 16,
+                  color: colorScheme.onSurfaceVariant,
                 ),
-
                 onTap: () {
                   Navigator.push(
                     context,
@@ -444,20 +428,17 @@ class ProfileScreen extends StatelessWidget {
                 leading: const Icon(
                   Icons.volunteer_activism,
                 ),
-
                 title: const Text(
                   "Support / Donate",
                 ),
-
                 subtitle: const Text(
                   "Help keep this service running",
                 ),
-
-                trailing: const Icon(
+                trailing: Icon(
                   Icons.arrow_forward_ios,
                   size: 16,
+                  color: colorScheme.onSurfaceVariant,
                 ),
-
                 onTap: () {
                   Navigator.push(
                     context,
@@ -478,14 +459,13 @@ class ProfileScreen extends StatelessWidget {
 
             SizedBox(
               width: double.infinity,
-
               child: ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
                   backgroundColor:
-                  Colors.red.shade50,
-                  foregroundColor: Colors.red,
+                  colorScheme.errorContainer,
+                  foregroundColor:
+                  colorScheme.onErrorContainer,
                 ),
-
                 onPressed: () async {
                   if (!context.mounted) return;
 
@@ -505,11 +485,9 @@ class ProfileScreen extends StatelessWidget {
                         (route) => false,
                   );
                 },
-
                 icon: const Icon(
                   Icons.logout,
                 ),
-
                 label: const Text(
                   'Logout',
                 ),

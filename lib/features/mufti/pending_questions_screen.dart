@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../core/role_view_controller.dart';
 import '../../models/question_model.dart';
+import '../../providers/font_provider.dart';
 import '../../services/questions_firestore_service.dart';
 import 'answer_question_screen.dart';
 
@@ -14,6 +15,10 @@ class PendingQuestionsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final service = QuestionsFirestoreService();
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    final fonts = context.watch<FontProvider>();
 
     final role =
         context.watch<RoleViewController>().activeRole;
@@ -26,6 +31,22 @@ class PendingQuestionsScreen extends StatelessWidget {
 
     final isMufti =
         role == 'mufti';
+
+    final questionTextStyle =
+    theme.textTheme.bodyLarge?.copyWith(
+      fontFamily:
+      fonts.resolveFontFamily(
+        fonts.questionFont,
+      ),
+      fontSize:
+      fonts.fontSize,
+      fontWeight:
+      fonts.fontWeight,
+      fontStyle:
+      fonts.isItalic
+          ? FontStyle.italic
+          : FontStyle.normal,
+    );
 
     return Scaffold(
       appBar: AppBar(
@@ -46,8 +67,11 @@ class PendingQuestionsScreen extends StatelessWidget {
 
           if (snapshot.connectionState ==
               ConnectionState.waiting) {
-            return const Center(
-              child: CircularProgressIndicator(),
+            return Center(
+              child: CircularProgressIndicator(
+                color:
+                colorScheme.primary,
+              ),
             );
           }
 
@@ -60,9 +84,11 @@ class PendingQuestionsScreen extends StatelessWidget {
               snapshot.error.toString(),
             );
 
-            return const Center(
+            return Center(
               child: Text(
                 'Unable to load questions',
+                style:
+                theme.textTheme.bodyMedium,
               ),
             );
           }
@@ -85,10 +111,13 @@ class PendingQuestionsScreen extends StatelessWidget {
           // =================================================
 
           if (questions.isEmpty) {
-            return const Center(
+            return Center(
               child: Text(
                 'No pending questions',
-                style: TextStyle(
+                style: theme
+                    .textTheme
+                    .bodyMedium
+                    ?.copyWith(
                   fontSize: 16,
                 ),
               ),
@@ -191,12 +220,7 @@ class PendingQuestionsScreen extends StatelessWidget {
                                         .ellipsis,
 
                                     style:
-                                    const TextStyle(
-                                      fontWeight:
-                                      FontWeight
-                                          .w600,
-                                      fontSize: 16,
-                                    ),
+                                    questionTextStyle,
                                   ),
 
                                   const SizedBox(
@@ -208,10 +232,14 @@ class PendingQuestionsScreen extends StatelessWidget {
                                         'Uncategorized',
 
                                     style:
-                                    const TextStyle(
+                                    theme
+                                        .textTheme
+                                        .bodySmall
+                                        ?.copyWith(
                                       fontSize: 12,
                                       color:
-                                      Colors.grey,
+                                      colorScheme
+                                          .onSurfaceVariant,
                                     ),
                                   ),
                                 ],
@@ -222,10 +250,13 @@ class PendingQuestionsScreen extends StatelessWidget {
                               width: 8,
                             ),
 
-                            const Icon(
+                            Icon(
                               Icons
                                   .arrow_forward_ios,
                               size: 16,
+                              color:
+                              colorScheme
+                                  .primary,
                             ),
                           ],
                         ),
@@ -276,7 +307,8 @@ class PendingQuestionsScreen extends StatelessWidget {
                                     context,
                                   ).showSnackBar(
                                     const SnackBar(
-                                      content: Text(
+                                      content:
+                                      Text(
                                         'Question claimed successfully.',
                                       ),
                                     ),
@@ -292,9 +324,9 @@ class PendingQuestionsScreen extends StatelessWidget {
                                     context,
                                   ).showSnackBar(
                                     SnackBar(
-                                      content: Text(
-                                        e
-                                            .toString()
+                                      content:
+                                      Text(
+                                        e.toString()
                                             .replaceFirst(
                                           'Exception: ',
                                           '',
@@ -372,10 +404,12 @@ class PendingQuestionsScreen extends StatelessWidget {
                                               const Text(
                                                 'Unclaim Question',
                                               ),
+
                                               content:
                                               const Text(
                                                 'Are you sure you want to unclaim this question?',
                                               ),
+
                                               actions: [
                                                 TextButton(
                                                   onPressed:
@@ -385,11 +419,13 @@ class PendingQuestionsScreen extends StatelessWidget {
                                                       false,
                                                     );
                                                   },
+
                                                   child:
                                                   const Text(
                                                     'Cancel',
                                                   ),
                                                 ),
+
                                                 ElevatedButton(
                                                   onPressed:
                                                       () {
@@ -398,6 +434,7 @@ class PendingQuestionsScreen extends StatelessWidget {
                                                       true,
                                                     );
                                                   },
+
                                                   child:
                                                   const Text(
                                                     'Unclaim',
@@ -447,8 +484,7 @@ class PendingQuestionsScreen extends StatelessWidget {
                                           SnackBar(
                                             content:
                                             Text(
-                                              e
-                                                  .toString()
+                                              e.toString()
                                                   .replaceFirst(
                                                 'Exception: ',
                                                 '',
@@ -501,10 +537,8 @@ class PendingQuestionsScreen extends StatelessWidget {
 
                               decoration:
                               BoxDecoration(
-                                color: Theme.of(
-                                  context,
-                                )
-                                    .colorScheme
+                                color:
+                                colorScheme
                                     .surfaceContainerHighest,
 
                                 borderRadius:
@@ -516,10 +550,13 @@ class PendingQuestionsScreen extends StatelessWidget {
 
                               child: Row(
                                 children: [
-                                  const Icon(
+                                  Icon(
                                     Icons
                                         .lock_outline,
                                     size: 18,
+                                    color:
+                                    colorScheme
+                                        .onSurfaceVariant,
                                   ),
 
                                   const SizedBox(
@@ -531,15 +568,15 @@ class PendingQuestionsScreen extends StatelessWidget {
                                       'CLAIMED',
 
                                       style:
-                                      TextStyle(
+                                      theme
+                                          .textTheme
+                                          .bodyMedium
+                                          ?.copyWith(
                                         fontWeight:
                                         FontWeight
                                             .w600,
-
-                                        color: Theme.of(
-                                          context,
-                                        )
-                                            .colorScheme
+                                        color:
+                                        colorScheme
                                             .onSurfaceVariant,
                                       ),
                                     ),
@@ -577,6 +614,12 @@ class _ClaimExpiryText
   Widget build(
       BuildContext context,
       ) {
+    final theme =
+    Theme.of(context);
+
+    final colorScheme =
+        theme.colorScheme;
+
     final remaining =
     expiresAt.toDate().difference(
       DateTime.now(),
@@ -584,11 +627,15 @@ class _ClaimExpiryText
 
     if (remaining.isNegative ||
         remaining == Duration.zero) {
-      return const Text(
+      return Text(
         'Claim expired',
-        style: TextStyle(
+        style: theme
+            .textTheme
+            .bodySmall
+            ?.copyWith(
           fontSize: 12,
-          color: Colors.red,
+          color:
+          colorScheme.error,
         ),
       );
     }
@@ -611,9 +658,13 @@ class _ClaimExpiryText
 
     return Text(
       text,
-      style: const TextStyle(
+      style: theme
+          .textTheme
+          .bodySmall
+          ?.copyWith(
         fontSize: 12,
-        color: Colors.orange,
+        color:
+        colorScheme.tertiary,
         fontWeight:
         FontWeight.w500,
       ),

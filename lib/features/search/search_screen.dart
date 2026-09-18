@@ -1,9 +1,11 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../../core/app_scaffold.dart';
 import '../../models/question_model.dart';
+import '../../providers/font_provider.dart';
 import '../../services/questions_firestore_service.dart';
 import '../answer_detail/answer_detail_screen.dart';
 
@@ -56,7 +58,7 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   // ============================================================
-  // 🔎 TEXT NORMALIZATION
+  // TEXT NORMALIZATION
   // ============================================================
 
   String _normalizeText(String text) {
@@ -64,7 +66,9 @@ class _SearchScreenState extends State<SearchScreen> {
 
     // Remove Arabic/Urdu harakaat / tashkeel.
     value = value.replaceAll(
-      RegExp(r'[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED]'),
+      RegExp(
+        r'[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED]',
+      ),
       '',
     );
 
@@ -94,7 +98,7 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   // ============================================================
-  // 🔎 SEARCH MATCH
+  // SEARCH MATCH
   // ============================================================
 
   bool _matchesSearch(
@@ -147,7 +151,7 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   // ============================================================
-  // 🔎 FILTER QUESTIONS
+  // FILTER QUESTIONS
   // ============================================================
 
   List<QuestionModel> _filterQuestions(
@@ -168,7 +172,7 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   // ============================================================
-  // 🧹 CLEAR SEARCH
+  // CLEAR SEARCH
   // ============================================================
 
   void _clearSearch() {
@@ -180,12 +184,13 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   // ============================================================
-  // 📱 BUILD
+  // BUILD
   // ============================================================
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     return AppScaffold(
       body: Padding(
@@ -198,7 +203,7 @@ class _SearchScreenState extends State<SearchScreen> {
         child: Column(
           children: [
             // ======================================================
-            // 🔎 SEARCH FIELD
+            // SEARCH FIELD
             // ======================================================
 
             TextField(
@@ -221,8 +226,7 @@ class _SearchScreenState extends State<SearchScreen> {
                 )
                     : null,
                 filled: true,
-                fillColor:
-                theme.colorScheme.surface,
+                fillColor: colorScheme.surface,
                 border: OutlineInputBorder(
                   borderRadius:
                   BorderRadius.circular(14),
@@ -230,21 +234,18 @@ class _SearchScreenState extends State<SearchScreen> {
                     color: theme.dividerColor,
                   ),
                 ),
-                enabledBorder:
-                OutlineInputBorder(
+                enabledBorder: OutlineInputBorder(
                   borderRadius:
                   BorderRadius.circular(14),
                   borderSide: BorderSide(
                     color: theme.dividerColor,
                   ),
                 ),
-                focusedBorder:
-                OutlineInputBorder(
+                focusedBorder: OutlineInputBorder(
                   borderRadius:
                   BorderRadius.circular(14),
                   borderSide: BorderSide(
-                    color:
-                    theme.colorScheme.primary,
+                    color: colorScheme.primary,
                     width: 1.5,
                   ),
                 ),
@@ -254,22 +255,20 @@ class _SearchScreenState extends State<SearchScreen> {
             const SizedBox(height: 16),
 
             // ======================================================
-            // 📚 PUBLISHED QUESTIONS
+            // PUBLISHED QUESTIONS
             // ======================================================
 
             Expanded(
-              child: StreamBuilder<
-                  List<QuestionModel>>(
-                stream: _service
-                    .streamPublishedQuestions(),
-                builder:
-                    (context, snapshot) {
+              child: StreamBuilder<List<QuestionModel>>(
+                stream: _service.streamPublishedQuestions(),
+                builder: (context, snapshot) {
                   if (snapshot.connectionState ==
                       ConnectionState.waiting &&
                       !snapshot.hasData) {
-                    return const Center(
-                      child:
-                      CircularProgressIndicator(),
+                    return Center(
+                      child: CircularProgressIndicator(
+                        color: colorScheme.primary,
+                      ),
                     );
                   }
 
@@ -283,16 +282,14 @@ class _SearchScreenState extends State<SearchScreen> {
                           MainAxisSize.min,
                           children: [
                             Icon(
-                              Icons
-                                  .error_outline,
+                              Icons.error_outline,
                               size: 48,
                               color:
-                              theme.colorScheme
-                                  .error,
+                              colorScheme.error,
                             ),
-                            const SizedBox(
-                              height: 12,
-                            ),
+
+                            const SizedBox(height: 12),
+
                             Text(
                               'Something went wrong',
                               style: theme
@@ -301,9 +298,9 @@ class _SearchScreenState extends State<SearchScreen> {
                               textAlign:
                               TextAlign.center,
                             ),
-                            const SizedBox(
-                              height: 6,
-                            ),
+
+                            const SizedBox(height: 6),
+
                             Text(
                               'Please try again later.',
                               style: theme
@@ -336,9 +333,7 @@ class _SearchScreenState extends State<SearchScreen> {
                   }
 
                   final results =
-                  _filterQuestions(
-                    allQuestions,
-                  );
+                  _filterQuestions(allQuestions);
 
                   // ------------------------------------------------
                   // NO RESULTS
@@ -376,16 +371,14 @@ class _SearchScreenState extends State<SearchScreen> {
                               ?.copyWith(
                             fontWeight:
                             FontWeight.w600,
-                            color: theme
-                                .colorScheme
-                                .primary,
+                            color:
+                            colorScheme.primary,
                           ),
                         ),
                       ),
 
                       Expanded(
-                        child:
-                        ListView.builder(
+                        child: ListView.builder(
                           physics:
                           const AlwaysScrollableScrollPhysics(),
                           padding:
@@ -400,8 +393,7 @@ class _SearchScreenState extends State<SearchScreen> {
                             results[index];
 
                             return _SearchResultCard(
-                              question:
-                              question,
+                              question: question,
                               searchQuery:
                               _searchQuery,
                             );
@@ -421,7 +413,7 @@ class _SearchScreenState extends State<SearchScreen> {
 }
 
 // ================================================================
-// 🔎 SEARCH RESULT CARD
+// SEARCH RESULT CARD
 // ================================================================
 
 class _SearchResultCard extends StatelessWidget {
@@ -436,6 +428,18 @@ class _SearchResultCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final fonts = context.watch<FontProvider>();
+
+    final questionFontFamily =
+    fonts.resolveFontFamily(
+      fonts.questionFont,
+    );
+
+    final answerFontFamily =
+    fonts.resolveFontFamily(
+      fonts.answerFont,
+    );
 
     final category =
         question.category?.trim() ?? '';
@@ -497,9 +501,14 @@ class _SearchResultCard extends StatelessWidget {
                 maxLines: 3,
                 overflow:
                 TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontSize: 17,
-                  fontWeight: FontWeight.w700,
+                style: theme
+                    .textTheme
+                    .titleMedium
+                    ?.copyWith(
+                  fontFamily:
+                  questionFontFamily,
+                  fontWeight:
+                  FontWeight.w700,
                   height: 1.45,
                 ),
               ),
@@ -510,14 +519,18 @@ class _SearchResultCard extends StatelessWidget {
 
               if (answer.isNotEmpty) ...[
                 const SizedBox(height: 8),
+
                 Text(
                   answer,
                   maxLines: 2,
                   overflow:
                   TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 14,
-                    height: 1.4,
+                  style: theme
+                      .textTheme
+                      .bodyMedium
+                      ?.copyWith(
+                    fontFamily:
+                    answerFontFamily,
                     color: theme
                         .textTheme
                         .bodyMedium
@@ -525,6 +538,7 @@ class _SearchResultCard extends StatelessWidget {
                         ?.withValues(
                       alpha: 0.75,
                     ),
+                    height: 1.4,
                   ),
                 ),
               ],
@@ -535,18 +549,20 @@ class _SearchResultCard extends StatelessWidget {
 
               if (categoryText.isNotEmpty) ...[
                 const SizedBox(height: 10),
+
                 Text(
                   categoryText,
                   maxLines: 1,
                   overflow:
                   TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 12,
+                  style: theme
+                      .textTheme
+                      .bodySmall
+                      ?.copyWith(
                     fontWeight:
                     FontWeight.w500,
-                    color: theme
-                        .colorScheme
-                        .primary,
+                    color:
+                    colorScheme.primary,
                   ),
                 ),
               ],
@@ -558,20 +574,22 @@ class _SearchResultCard extends StatelessWidget {
                   Icon(
                     Icons.arrow_forward_ios,
                     size: 13,
-                    color: theme
-                        .colorScheme
-                        .primary,
+                    color:
+                    colorScheme.primary,
                   ),
+
                   const SizedBox(width: 5),
+
                   Text(
                     'View Answer',
-                    style: TextStyle(
-                      fontSize: 12,
+                    style: theme
+                        .textTheme
+                        .labelMedium
+                        ?.copyWith(
                       fontWeight:
                       FontWeight.w600,
-                      color: theme
-                          .colorScheme
-                          .primary,
+                      color:
+                      colorScheme.primary,
                     ),
                   ),
                 ],
@@ -602,6 +620,7 @@ class _EmptySearchState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     return Center(
       child: Padding(
@@ -612,12 +631,12 @@ class _EmptySearchState extends StatelessWidget {
             Icon(
               icon,
               size: 58,
-              color: theme
-                  .colorScheme
-                  .primary
+              color: colorScheme.primary
                   .withValues(alpha: 0.55),
             ),
+
             const SizedBox(height: 14),
+
             Text(
               title,
               style: theme
@@ -629,7 +648,9 @@ class _EmptySearchState extends StatelessWidget {
               ),
               textAlign: TextAlign.center,
             ),
+
             const SizedBox(height: 6),
+
             Text(
               message,
               style: theme

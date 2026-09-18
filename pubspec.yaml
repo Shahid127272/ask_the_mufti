@@ -2,7 +2,7 @@ name: ask_the_mufti
 description: Ask The Mufti - Beginner Version
 publish_to: 'none'
 
-version: 1.0.20+23
+version: 1.0.22+25
 
 environment:
   sdk: ">=3.3.0 <4.0.0"
@@ -19,6 +19,10 @@ dependencies:
   firebase_auth: ^6.2.0
   firebase_storage: ^13.1.0
   firebase_messaging: ^16.1.2
+  package_info_plus: ^8.3.1
+  dio: ^5.11.0
+  path_provider: ^2.1.5
+  open_filex: ^4.7.0
 
   # Notifications
   flutter_local_notifications: ^17.2.1
@@ -34,6 +38,7 @@ dependencies:
   intl: ^0.19.0
   uuid: ^4.5.3
   url_launcher: ^6.3.2
+  http: ^1.5.0
 
   # Phone Input
   intl_phone_field: ^3.2.0
@@ -94,6 +99,40 @@ flutter:
     - family: Playfair
       fonts:
         - asset: assets/fonts/playfair.ttf
+
+    - family: PrimeNordic
+      fonts:
+        - asset: assets/fonts/PrimeNordicDEMO-Regular.ttf
+
+    - family: Nilmero
+      fonts:
+        - asset: assets/fonts/Nilmero.ttf
+
+    - family: Noaction
+      fonts:
+        - asset: assets/fonts/Noaction.ttf
+
+    - family: TaoBaso
+      fonts:
+        - asset: assets/fonts/Tao-Baso-TTF.ttf
+
+    - family: SanToremi
+      fonts:
+        - asset: assets/fonts/SanToremi.ttf
+
+    - family: BiotripSerifCaps
+      fonts:
+        - asset: assets/fonts/BiotripSerifCaps-Regular.ttf
+        - asset: assets/fonts/BiotripSerifCaps-Bold.ttf
+          weight: 700
+
+    - family: Cafecito
+      fonts:
+        - asset: assets/fonts/Cafecito.ttf
+
+    - family: Stylis
+      fonts:
+        - asset: assets/fonts/Stylis.otf
 
 flutter_launcher_icons:
   android: "launcher_icon"

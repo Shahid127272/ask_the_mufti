@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../../core/app_scaffold.dart';
-import '../../core/theme.dart';
+import '../../providers/font_provider.dart';
 import 'subcategories_screen.dart';
 
 class CategoriesScreen extends StatelessWidget {
@@ -72,18 +73,12 @@ class CategoriesScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
-    final isDark =
-        theme.brightness == Brightness.dark;
+    final colorScheme = theme.colorScheme;
 
     return AppScaffold(
       notificationCount: 0,
-
       body: Container(
-        color: isDark
-            ? Colors.black
-            : const Color(0xFFF5F7F8),
-
+        color: colorScheme.surface,
         child: GridView.builder(
           padding: const EdgeInsets.fromLTRB(
             16,
@@ -91,9 +86,7 @@ class CategoriesScreen extends StatelessWidget {
             16,
             100,
           ),
-
           itemCount: categories.length,
-
           gridDelegate:
           const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
@@ -101,7 +94,6 @@ class CategoriesScreen extends StatelessWidget {
             mainAxisSpacing: 16,
             childAspectRatio: 0.95,
           ),
-
           itemBuilder: (context, index) {
             final category = categories[index];
 
@@ -117,8 +109,6 @@ class CategoriesScreen extends StatelessWidget {
             return _CategoryCard(
               title: categoryTitle,
               icon: icon,
-              isDark: isDark,
-
               onTap: () {
                 Navigator.push(
                   context,
@@ -146,57 +136,61 @@ class CategoriesScreen extends StatelessWidget {
 class _CategoryCard extends StatelessWidget {
   final String title;
   final IconData icon;
-  final bool isDark;
   final VoidCallback onTap;
 
   const _CategoryCard({
     required this.title,
     required this.icon,
-    required this.isDark,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final textTheme = theme.textTheme;
+    final fonts = context.watch<FontProvider>();
+
+    final uiFontFamily =
+    fonts.resolveFontFamily(
+      fonts.uiFont,
+    );
+
     return Material(
       color: Colors.transparent,
-
       child: InkWell(
         onTap: onTap,
-
-        borderRadius:
-        BorderRadius.circular(18),
-
+        borderRadius: BorderRadius.circular(18),
         child: Container(
           decoration: BoxDecoration(
-            color: isDark
-                ? const Color(0xFF1E1E1E)
-                : Colors.white,
-
+            color:
+            colorScheme.surfaceContainerHighest,
             borderRadius:
             BorderRadius.circular(18),
-
-            boxShadow: isDark
+            boxShadow:
+            theme.brightness ==
+                Brightness.dark
                 ? null
                 : [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.06),
+                color: colorScheme.shadow
+                    .withValues(
+                  alpha: 0.06,
+                ),
                 blurRadius: 8,
                 offset:
                 const Offset(0, 3),
               ),
             ],
           ),
-
           child: Column(
             mainAxisAlignment:
             MainAxisAlignment.center,
-
             children: [
               Icon(
                 icon,
                 size: 62,
-                color: AppTheme.primary,
+                color: colorScheme.primary,
               ),
 
               const SizedBox(height: 20),
@@ -206,26 +200,25 @@ class _CategoryCard extends StatelessWidget {
                 const EdgeInsets.symmetric(
                   horizontal: 8,
                 ),
-
                 child: Text(
                   title,
-
                   textAlign: TextAlign.center,
-
                   maxLines: 2,
-
                   overflow:
                   TextOverflow.ellipsis,
-
-                  style: TextStyle(
-                    fontSize: 17,
-
+                  style: textTheme.titleMedium
+                      ?.copyWith(
+                    fontFamily:
+                    uiFontFamily,
+                    fontSize:
+                    fonts.fontSize,
                     fontWeight:
-                    FontWeight.w600,
-
-                    color: isDark
-                        ? Colors.white
-                        : Colors.black87,
+                    fonts.fontWeight,
+                    fontStyle: fonts.isItalic
+                        ? FontStyle.italic
+                        : FontStyle.normal,
+                    color:
+                    colorScheme.onSurface,
                   ),
                 ),
               ),

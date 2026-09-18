@@ -1,21 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:provider/provider.dart';
 
 import '../../core/app_scaffold.dart';
 import '../../models/question_model.dart';
 import '../../services/questions_firestore_service.dart';
+import '../../providers/font_provider.dart';
 import '../answer_detail/answer_detail_screen.dart';
 
 class MyQuestionsScreen extends StatefulWidget {
   const MyQuestionsScreen({super.key});
 
   @override
-  State<MyQuestionsScreen> createState() =>
-      _MyQuestionsScreenState();
+  State<MyQuestionsScreen> createState() => _MyQuestionsScreenState();
 }
 
-class _MyQuestionsScreenState
-    extends State<MyQuestionsScreen> {
+class _MyQuestionsScreenState extends State<MyQuestionsScreen> {
   final QuestionsFirestoreService _service =
   QuestionsFirestoreService();
 
@@ -41,17 +41,14 @@ class _MyQuestionsScreenState
   Widget build(BuildContext context) {
     return AppScaffold(
       notificationCount: 0,
-
       body: StreamBuilder<List<QuestionModel>>(
         stream: _service.watchMyQuestions(),
-
         builder: (context, snapshot) {
           // ---------------------------------------------------
           // LOADING
           // ---------------------------------------------------
 
-          if (snapshot.connectionState ==
-              ConnectionState.waiting) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(
               child: CircularProgressIndicator(),
             );
@@ -74,20 +71,17 @@ class _MyQuestionsScreenState
             );
           }
 
-          final myQuestions =
-              snapshot.data ?? [];
+          final myQuestions = snapshot.data ?? [];
 
           return Column(
-            crossAxisAlignment:
-            CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // =================================================
               // TITLE
               // =================================================
 
               Padding(
-                padding:
-                const EdgeInsets.fromLTRB(
+                padding: const EdgeInsets.fromLTRB(
                   16,
                   14,
                   16,
@@ -99,8 +93,7 @@ class _MyQuestionsScreenState
                       .textTheme
                       .headlineSmall
                       ?.copyWith(
-                    fontWeight:
-                    FontWeight.bold,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
@@ -134,64 +127,36 @@ class _MyQuestionsScreenState
   // =========================================================
 
   Widget _buildTabs() {
-    final theme =
-    Theme.of(context);
+    final theme = Theme.of(context);
 
     return SizedBox(
       height: 54,
-
       child: ListView.separated(
-        scrollDirection:
-        Axis.horizontal,
-
-        padding:
-        const EdgeInsets.symmetric(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(
           horizontal: 16,
           vertical: 8,
         ),
-
-        itemCount:
-        _tabs.length,
-
-        separatorBuilder:
-            (_, __) =>
-        const SizedBox(
+        itemCount: _tabs.length,
+        separatorBuilder: (_, __) => const SizedBox(
           width: 8,
         ),
-
-        itemBuilder:
-            (context, index) {
-          final selected =
-              _selectedTab == index;
+        itemBuilder: (context, index) {
+          final selected = _selectedTab == index;
 
           return ChoiceChip(
-            label:
-            Text(_tabs[index]),
-
-            selected:
-            selected,
-
-            onSelected:
-                (_) {
+            label: Text(_tabs[index]),
+            selected: selected,
+            onSelected: (_) {
               setState(() {
-                _selectedTab =
-                    index;
+                _selectedTab = index;
               });
             },
-
-            selectedColor:
-            theme.colorScheme.primary,
-
-            labelStyle:
-            TextStyle(
+            selectedColor: theme.colorScheme.primary,
+            labelStyle: TextStyle(
               color: selected
-                  ? theme
-                  .colorScheme
-                  .onPrimary
-                  : theme
-                  .colorScheme
-                  .onSurface,
-
+                  ? theme.colorScheme.onPrimary
+                  : theme.colorScheme.onSurface,
               fontWeight: selected
                   ? FontWeight.bold
                   : FontWeight.normal,
@@ -209,8 +174,7 @@ class _MyQuestionsScreenState
   Widget _buildMyQuestionTab(
       List<QuestionModel> questions,
       ) {
-    final filtered =
-    _filterQuestions(
+    final filtered = _filterQuestions(
       questions,
     );
 
@@ -220,12 +184,9 @@ class _MyQuestionsScreenState
 
     if (filtered.isEmpty) {
       return _buildEmptyState(
-        icon:
-        Icons.question_answer_outlined,
-        title:
-        _emptyTitle(),
-        subtitle:
-        _emptySubtitle(),
+        icon: Icons.question_answer_outlined,
+        title: _emptyTitle(),
+        subtitle: _emptySubtitle(),
       );
     }
 
@@ -243,25 +204,16 @@ class _MyQuestionsScreenState
           ),
         );
       },
-
       child: ListView.builder(
-        physics:
-        const AlwaysScrollableScrollPhysics(),
-
-        padding:
-        const EdgeInsets.only(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.only(
           top: 4,
           bottom: 24,
         ),
-
-        itemCount:
-        filtered.length,
-
-        itemBuilder:
-            (context, index) {
+        itemCount: filtered.length,
+        itemBuilder: (context, index) {
           return _QuestionCard(
-            question:
-            filtered[index],
+            question: filtered[index],
           );
         },
       ),
@@ -273,22 +225,16 @@ class _MyQuestionsScreenState
   // =========================================================
 
   Widget _buildBookmarkTab() {
-    return StreamBuilder<
-        List<QuestionModel>>(
-      stream:
-      _service.getBookmarkedQuestions(),
-
-      builder:
-          (context, snapshot) {
+    return StreamBuilder<List<QuestionModel>>(
+      stream: _service.getBookmarkedQuestions(),
+      builder: (context, snapshot) {
         // -----------------------------------------------------
         // LOADING
         // -----------------------------------------------------
 
-        if (snapshot.connectionState ==
-            ConnectionState.waiting) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(
-            child:
-            CircularProgressIndicator(),
+            child: CircularProgressIndicator(),
           );
         }
 
@@ -299,20 +245,17 @@ class _MyQuestionsScreenState
         if (snapshot.hasError) {
           return Center(
             child: Padding(
-              padding:
-              const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(20),
               child: Text(
                 'Bookmarks load nahi ho sake.\n\n'
                     '${snapshot.error}',
-                textAlign:
-                TextAlign.center,
+                textAlign: TextAlign.center,
               ),
             ),
           );
         }
 
-        final questions =
-            snapshot.data ?? [];
+        final questions = snapshot.data ?? [];
 
         // -----------------------------------------------------
         // EMPTY
@@ -320,10 +263,8 @@ class _MyQuestionsScreenState
 
         if (questions.isEmpty) {
           return _buildEmptyState(
-            icon:
-            Icons.bookmark_border_rounded,
-            title:
-            'No Bookmarks',
+            icon: Icons.bookmark_border_rounded,
+            title: 'No Bookmarks',
             subtitle:
             'Aapke bookmarked questions yahan dikhenge.',
           );
@@ -343,25 +284,16 @@ class _MyQuestionsScreenState
               ),
             );
           },
-
           child: ListView.builder(
-            physics:
-            const AlwaysScrollableScrollPhysics(),
-
-            padding:
-            const EdgeInsets.only(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.only(
               top: 4,
               bottom: 24,
             ),
-
-            itemCount:
-            questions.length,
-
-            itemBuilder:
-                (context, index) {
+            itemCount: questions.length,
+            itemBuilder: (context, index) {
               return _QuestionCard(
-                question:
-                questions[index],
+                question: questions[index],
               );
             },
           ),
@@ -458,13 +390,11 @@ class _MyQuestionsScreenState
         return 'Aapke pending questions yahan dikhai denge.';
 
       case 3:
-        return
-          'Jin questions ka jawab aa gaya hai, '
-              'woh yahan dikhai denge.';
+        return 'Jin questions ka jawab aa gaya hai, '
+            'woh yahan dikhai denge.';
 
       case 4:
-        return
-          'Aapke bookmarked questions yahan dikhai denge.';
+        return 'Aapke bookmarked questions yahan dikhai denge.';
 
       case 0:
       default:
@@ -481,26 +411,18 @@ class _MyQuestionsScreenState
     required String title,
     required String subtitle,
   }) {
-    final theme =
-    Theme.of(context);
+    final theme = Theme.of(context);
 
     return Center(
       child: Padding(
-        padding:
-        const EdgeInsets.all(24),
-
+        padding: const EdgeInsets.all(24),
         child: Column(
-          mainAxisSize:
-          MainAxisSize.min,
-
+          mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
               icon,
               size: 60,
-              color:
-              theme
-                  .colorScheme
-                  .outline,
+              color: theme.colorScheme.outline,
             ),
 
             const SizedBox(
@@ -509,15 +431,9 @@ class _MyQuestionsScreenState
 
             Text(
               title,
-              textAlign:
-              TextAlign.center,
-
-              style: theme
-                  .textTheme
-                  .titleMedium
-                  ?.copyWith(
-                fontWeight:
-                FontWeight.bold,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
               ),
             ),
 
@@ -527,16 +443,9 @@ class _MyQuestionsScreenState
 
             Text(
               subtitle,
-              textAlign:
-              TextAlign.center,
-
-              style: theme
-                  .textTheme
-                  .bodyMedium
-                  ?.copyWith(
-                color: theme
-                    .colorScheme
-                    .onSurfaceVariant,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
           ],
@@ -550,8 +459,7 @@ class _MyQuestionsScreenState
 // 📝 QUESTION CARD
 // =============================================================
 
-class _QuestionCard
-    extends StatefulWidget {
+class _QuestionCard extends StatefulWidget {
   final QuestionModel question;
 
   const _QuestionCard({
@@ -563,16 +471,14 @@ class _QuestionCard
       _QuestionCardState();
 }
 
-class _QuestionCardState
-    extends State<_QuestionCard> {
+class _QuestionCardState extends State<_QuestionCard> {
   final QuestionsFirestoreService _service =
   QuestionsFirestoreService();
 
   bool _isBookmarked = false;
   bool _bookmarkLoading = true;
 
-  QuestionModel get question =>
-      widget.question;
+  QuestionModel get question => widget.question;
 
   // =========================================================
   // 🔖 LOAD BOOKMARK STATUS
@@ -587,8 +493,7 @@ class _QuestionCardState
 
   Future<void> _loadBookmarkStatus() async {
     try {
-      final result =
-      await _service.isBookmarkedByUser(
+      final result = await _service.isBookmarkedByUser(
         question.id,
       );
 
@@ -650,12 +555,65 @@ class _QuestionCardState
         _bookmarkLoading = false;
       });
 
-      ScaffoldMessenger.of(context)
-          .showSnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content:
-          Text(
+          content: Text(
             'Bookmark update nahi ho saka.',
+          ),
+        ),
+      );
+    }
+  }
+
+  // =========================================================
+  // 📖 OPEN QUESTION WITH FRESH FIRESTORE DATA
+  // =========================================================
+
+  Future<void> _openQuestion() async {
+    try {
+      final doc = await FirebaseFirestore.instance
+          .collection('questions')
+          .doc(question.id)
+          .get();
+
+      if (!mounted) return;
+
+      if (!doc.exists) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Question nahi mila.',
+            ),
+          ),
+        );
+
+        return;
+      }
+
+      final freshQuestion =
+      QuestionModel.fromFirestore(doc);
+
+      if (!mounted) return;
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => AnswerDetailScreen(
+            question: freshQuestion,
+          ),
+        ),
+      );
+    } catch (e) {
+      debugPrint(
+        'Open question error: $e',
+      );
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Question open nahi ho saka.',
           ),
         ),
       );
@@ -669,23 +627,19 @@ class _QuestionCardState
   String _formatDate(
       Timestamp timestamp,
       ) {
-    final date =
-    timestamp.toDate().toLocal();
+    final date = timestamp.toDate().toLocal();
 
-    final day =
-    date.day.toString().padLeft(
+    final day = date.day.toString().padLeft(
       2,
       '0',
     );
 
-    final month =
-    date.month.toString().padLeft(
+    final month = date.month.toString().padLeft(
       2,
       '0',
     );
 
-    final year =
-    date.year.toString();
+    final year = date.year.toString();
 
     return '$day/$month/$year';
   }
@@ -744,24 +698,29 @@ class _QuestionCardState
   Widget build(
       BuildContext context,
       ) {
-    final theme =
-    Theme.of(context);
+    final theme = Theme.of(context);
 
-    final statusInfo =
-    _statusInfo(
+    // =======================================================
+    // FONT SETTINGS
+    // =======================================================
+
+    final fonts = context.watch<FontProvider>();
+
+    final questionFontFamily =
+    fonts.resolveFontFamily(
+      fonts.questionFont,
+    );
+
+    final statusInfo = _statusInfo(
       question.status,
       theme,
     );
 
     final category =
-        question.category
-            ?.trim() ??
-            '';
+        question.category?.trim() ?? '';
 
     final subCategory =
-        question.subCategory
-            ?.trim() ??
-            '';
+        question.subCategory?.trim() ?? '';
 
     String categoryText = '';
 
@@ -770,41 +729,28 @@ class _QuestionCardState
       categoryText =
       '$category • $subCategory';
     } else if (category.isNotEmpty) {
-      categoryText =
-          category;
+      categoryText = category;
     } else if (subCategory.isNotEmpty) {
-      categoryText =
-          subCategory;
+      categoryText = subCategory;
     }
 
     return Material(
       color: Colors.transparent,
-
       child: InkWell(
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) =>
-                  AnswerDetailScreen(
-                    question:
-                    question,
-                  ),
-            ),
-          );
-        },
+        // =====================================================
+        // 📖 OPEN QUESTION
+        // =====================================================
+
+        onTap: _openQuestion,
 
         child: Padding(
-          padding:
-          const EdgeInsets.symmetric(
+          padding: const EdgeInsets.symmetric(
             horizontal: 16,
             vertical: 13,
           ),
-
           child: Column(
             crossAxisAlignment:
             CrossAxisAlignment.start,
-
             children: [
               // =================================================
               // QUESTION + BOOKMARK
@@ -812,25 +758,21 @@ class _QuestionCardState
 
               Row(
                 crossAxisAlignment:
-                CrossAxisAlignment
-                    .start,
-
+                CrossAxisAlignment.start,
                 children: [
                   Expanded(
                     child: Text(
                       question.questionText,
-
                       maxLines: 3,
-
-                      overflow:
-                      TextOverflow.ellipsis,
-
-                      style: theme
-                          .textTheme
-                          .titleMedium
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.titleMedium
                           ?.copyWith(
-                        fontWeight:
-                        FontWeight.bold,
+                        fontFamily: questionFontFamily,
+                        fontSize: fonts.fontSize,
+                        fontWeight: fonts.fontWeight,
+                        fontStyle: fonts.isItalic
+                            ? FontStyle.italic
+                            : FontStyle.normal,
                         height: 1.45,
                       ),
                     ),
@@ -845,45 +787,32 @@ class _QuestionCardState
                   // ------------------------------------------------
 
                   IconButton(
-                    onPressed:
-                    _bookmarkLoading
+                    onPressed: _bookmarkLoading
                         ? null
                         : _toggleBookmark,
-
-                    tooltip:
-                    _isBookmarked
+                    tooltip: _isBookmarked
                         ? 'Remove Bookmark'
                         : 'Bookmark',
-
-                    padding:
-                    EdgeInsets.zero,
-
-                    constraints:
-                    const BoxConstraints(
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(
                       minWidth: 38,
                       minHeight: 38,
                     ),
-
-                    icon:
-                    _bookmarkLoading
+                    icon: _bookmarkLoading
                         ? const SizedBox(
                       width: 18,
                       height: 18,
                       child:
                       CircularProgressIndicator(
-                        strokeWidth:
-                        2,
+                        strokeWidth: 2,
                       ),
                     )
                         : Icon(
                       _isBookmarked
-                          ? Icons
-                          .bookmark_rounded
+                          ? Icons.bookmark_rounded
                           : Icons
                           .bookmark_border_rounded,
-
-                      color:
-                      _isBookmarked
+                      color: _isBookmarked
                           ? theme
                           .colorScheme
                           .primary
@@ -906,14 +835,9 @@ class _QuestionCardState
 
                 Text(
                   categoryText,
-
-                  style: theme
-                      .textTheme
-                      .bodySmall
-                      ?.copyWith(
-                    color: theme
-                        .colorScheme
-                        .onSurfaceVariant,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color:
+                    theme.colorScheme.onSurfaceVariant,
                   ),
                 ),
               ],
@@ -929,22 +853,17 @@ class _QuestionCardState
               Row(
                 children: [
                   _StatusBadge(
-                    text:
-                    statusInfo.$1,
-                    color:
-                    statusInfo.$2,
-                    icon:
-                    statusInfo.$3,
+                    text: statusInfo.$1,
+                    color: statusInfo.$2,
+                    icon: statusInfo.$3,
                   ),
 
                   // ---------------------------------------------
                   // MUFTI NAME ONLY FOR ANSWERED
                   // ---------------------------------------------
 
-                  if (question.status ==
-                      'published' &&
-                      question.muftiName !=
-                          null &&
+                  if (question.status == 'published' &&
+                      question.muftiName != null &&
                       question.muftiName!
                           .trim()
                           .isNotEmpty) ...[
@@ -956,11 +875,9 @@ class _QuestionCardState
                       child: Row(
                         children: [
                           const Icon(
-                            Icons
-                                .verified_rounded,
+                            Icons.verified_rounded,
                             size: 15,
-                            color:
-                            Colors.green,
+                            color: Colors.green,
                           ),
 
                           const SizedBox(
@@ -969,23 +886,18 @@ class _QuestionCardState
 
                           Expanded(
                             child: Text(
-                              'Answered by ${question.muftiName}',
-
+                              'Answered by '
+                                  '${question.muftiName}',
                               maxLines: 1,
-
                               overflow:
-                              TextOverflow
-                                  .ellipsis,
-
+                              TextOverflow.ellipsis,
                               style: theme
                                   .textTheme
                                   .bodySmall
                                   ?.copyWith(
-                                color:
-                                Colors.green,
+                                color: Colors.green,
                                 fontWeight:
-                                FontWeight
-                                    .w600,
+                                FontWeight.w600,
                               ),
                             ),
                           ),
@@ -1007,12 +919,9 @@ class _QuestionCardState
               Row(
                 children: [
                   Icon(
-                    Icons
-                        .access_time_rounded,
+                    Icons.access_time_rounded,
                     size: 14,
-                    color: theme
-                        .colorScheme
-                        .outline,
+                    color: theme.colorScheme.outline,
                   ),
 
                   const SizedBox(
@@ -1024,22 +933,17 @@ class _QuestionCardState
                       question.updatedAt ??
                           question.createdAt,
                     ),
-
-                    style: theme
-                        .textTheme
-                        .bodySmall
+                    style: theme.textTheme.bodySmall
                         ?.copyWith(
-                      color: theme
-                          .colorScheme
-                          .onSurfaceVariant,
+                      color:
+                      theme.colorScheme.onSurfaceVariant,
                     ),
                   ),
 
                   const Spacer(),
 
                   const Icon(
-                    Icons
-                        .arrow_forward_ios_rounded,
+                    Icons.arrow_forward_ios_rounded,
                     size: 13,
                   ),
                 ],
@@ -1064,8 +968,7 @@ class _QuestionCardState
 // 🏷️ STATUS BADGE
 // =============================================================
 
-class _StatusBadge
-    extends StatelessWidget {
+class _StatusBadge extends StatelessWidget {
   final String text;
   final Color color;
   final IconData icon;
@@ -1081,29 +984,20 @@ class _StatusBadge
       BuildContext context,
       ) {
     return Container(
-      padding:
-      const EdgeInsets.symmetric(
+      padding: const EdgeInsets.symmetric(
         horizontal: 8,
         vertical: 5,
       ),
-
-      decoration:
-      BoxDecoration(
-        color:
-        color.withValues(
+      decoration: BoxDecoration(
+        color: color.withValues(
           alpha: .10,
         ),
-
-        borderRadius:
-        BorderRadius.circular(
+        borderRadius: BorderRadius.circular(
           20,
         ),
       ),
-
       child: Row(
-        mainAxisSize:
-        MainAxisSize.min,
-
+        mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
             icon,
@@ -1117,11 +1011,9 @@ class _StatusBadge
 
           Text(
             text,
-
             style: TextStyle(
               fontSize: 11,
-              fontWeight:
-              FontWeight.bold,
+              fontWeight: FontWeight.bold,
               color: color,
             ),
           ),

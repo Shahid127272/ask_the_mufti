@@ -5,9 +5,10 @@ import 'package:provider/provider.dart';
 
 import '../../core/app_scaffold.dart';
 import '../../core/role_view_controller.dart';
-import '../answer_detail/answer_detail_screen.dart';
 import '../../models/question_model.dart';
+import '../../providers/font_provider.dart';
 import '../../services/questions_firestore_service.dart';
+import '../answer_detail/answer_detail_screen.dart';
 import 'answer_question_screen.dart';
 
 class MuftiDashboardScreen extends StatefulWidget {
@@ -123,6 +124,9 @@ class _MuftiDashboardScreenState
       }) {
     final theme = Theme.of(context);
 
+    final fonts =
+    context.watch<FontProvider>();
+
     final role =
         context.watch<RoleViewController>().activeRole;
 
@@ -135,6 +139,22 @@ class _MuftiDashboardScreenState
 
     final isMufti =
         role == 'mufti';
+
+    final questionTextStyle =
+    theme.textTheme.titleMedium?.copyWith(
+      fontFamily:
+      fonts.resolveFontFamily(
+        fonts.questionFont,
+      ),
+      fontSize:
+      fonts.fontSize,
+      fontWeight:
+      fonts.fontWeight,
+      fontStyle:
+      fonts.isItalic
+          ? FontStyle.italic
+          : FontStyle.normal,
+    );
 
     return StreamBuilder<
         QuerySnapshot<Map<String, dynamic>>>(
@@ -288,8 +308,7 @@ class _MuftiDashboardScreenState
                                 .showSnackBar(
                               SnackBar(
                                 content: Text(
-                                  e
-                                      .toString()
+                                  e.toString()
                                       .replaceFirst(
                                     'Exception: ',
                                     '',
@@ -354,14 +373,8 @@ class _MuftiDashboardScreenState
                                   overflow:
                                   TextOverflow
                                       .ellipsis,
-                                  style: theme
-                                      .textTheme
-                                      .titleMedium
-                                      ?.copyWith(
-                                    fontWeight:
-                                    FontWeight
-                                        .w600,
-                                  ),
+                                  style:
+                                  questionTextStyle,
                                 ),
 
                                 const SizedBox(
@@ -394,17 +407,23 @@ class _MuftiDashboardScreenState
                                       const SizedBox(
                                         width: 8,
                                       ),
-                                      const Text(
+
+                                      Text(
                                         '•',
-                                        style:
-                                        TextStyle(
-                                          color:
-                                          Colors.grey,
+                                        style: theme
+                                            .textTheme
+                                            .bodySmall
+                                            ?.copyWith(
+                                          color: theme
+                                              .colorScheme
+                                              .outlineVariant,
                                         ),
                                       ),
+
                                       const SizedBox(
                                         width: 8,
                                       ),
+
                                       Expanded(
                                         child:
                                         Text(
@@ -447,7 +466,6 @@ class _MuftiDashboardScreenState
                     //
                     // Sirf New / Pending mein
                     // aur sirf Mufti ko.
-                    //
                     // =========================================
 
                     if (showClaimSystem &&
@@ -494,7 +512,8 @@ class _MuftiDashboardScreenState
                                     .of(context)
                                     .showSnackBar(
                                   const SnackBar(
-                                    content: Text(
+                                    content:
+                                    Text(
                                       'Question claimed successfully.',
                                     ),
                                   ),
@@ -511,8 +530,7 @@ class _MuftiDashboardScreenState
                                   SnackBar(
                                     content:
                                     Text(
-                                      e
-                                          .toString()
+                                      e.toString()
                                           .replaceFirst(
                                         'Exception: ',
                                         '',
@@ -533,13 +551,16 @@ class _MuftiDashboardScreenState
                           const SizedBox(
                             height: 6,
                           ),
-                          const Text(
+                          Text(
                             'Previous claim expired. This question is available again.',
-                            style:
-                            TextStyle(
+                            style: theme
+                                .textTheme
+                                .bodySmall
+                                ?.copyWith(
                               fontSize: 12,
-                              color:
-                              Colors.red,
+                              color: theme
+                                  .colorScheme
+                                  .error,
                             ),
                           ),
                         ],
@@ -680,8 +701,7 @@ class _MuftiDashboardScreenState
                                         SnackBar(
                                           content:
                                           Text(
-                                            e
-                                                .toString()
+                                            e.toString()
                                                 .replaceFirst(
                                               'Exception: ',
                                               '',
@@ -757,7 +777,8 @@ class _MuftiDashboardScreenState
                                 ),
 
                                 Expanded(
-                                  child: Text(
+                                  child:
+                                  Text(
                                     'CLAIMED',
                                     style:
                                     TextStyle(
@@ -792,9 +813,11 @@ class _MuftiDashboardScreenState
                         IconButton(
                           tooltip:
                           'Delete Question',
-                          icon: const Icon(
+                          icon: Icon(
                             Icons.delete,
-                            color: Colors.red,
+                            color: theme
+                                .colorScheme
+                                .error,
                           ),
                           onPressed:
                               () async {
@@ -879,9 +902,9 @@ class _MuftiDashboardScreenState
                                   .of(context)
                                   .showSnackBar(
                                 SnackBar(
-                                  content: Text(
-                                    e
-                                        .toString()
+                                  content:
+                                  Text(
+                                    e.toString()
                                         .replaceFirst(
                                       'Exception: ',
                                       '',
@@ -929,11 +952,14 @@ class _MuftiDashboardScreenState
               _tabController,
               isScrollable: true,
               labelColor:
-              Colors.white,
+              theme.colorScheme.onPrimary,
               unselectedLabelColor:
-              Colors.white70,
+              theme.colorScheme.onPrimary
+                  .withValues(
+                alpha: 0.70,
+              ),
               indicatorColor:
-              Colors.white,
+              theme.colorScheme.onPrimary,
               tabs: const [
                 Tab(
                   text: 'New',
@@ -1006,7 +1032,8 @@ class _ClaimExpiryText
 
   @override
   Widget build(
-      BuildContext context) {
+      BuildContext context,
+      ) {
     final remaining =
     expiresAt.toDate().difference(
       DateTime.now(),
@@ -1014,11 +1041,18 @@ class _ClaimExpiryText
 
     if (remaining.isNegative ||
         remaining == Duration.zero) {
-      return const Text(
+      final theme =
+      Theme.of(context);
+
+      return Text(
         'Claim expired',
-        style: TextStyle(
+        style: theme
+            .textTheme
+            .bodySmall
+            ?.copyWith(
           fontSize: 12,
-          color: Colors.red,
+          color:
+          theme.colorScheme.error,
         ),
       );
     }
@@ -1047,9 +1081,15 @@ class _ClaimExpiryText
 
     return Text(
       text,
-      style: const TextStyle(
+      style:
+      Theme.of(context)
+          .textTheme
+          .bodySmall
+          ?.copyWith(
         fontSize: 12,
-        color: Colors.orange,
+        color: Theme.of(context)
+            .colorScheme
+            .tertiary,
         fontWeight:
         FontWeight.w500,
       ),

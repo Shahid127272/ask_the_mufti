@@ -8,13 +8,20 @@ class DonationScreen extends StatelessWidget {
   Future<void> _openLink(String url) async {
     final uri = Uri.parse(url);
 
-    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+    if (!await launchUrl(
+      uri,
+      mode: LaunchMode.externalApplication,
+    )) {
       throw Exception("Could not launch $url");
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final textTheme = theme.textTheme;
+
     final razorpay = RazorpayService();
 
     return Scaffold(
@@ -26,29 +33,29 @@ class DonationScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
-            const Text(
+            Text(
               "Support Ask The Mufti",
-              style: TextStyle(
-                fontSize: 22,
+              style: textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
             ),
 
             const SizedBox(height: 12),
 
-            const Text(
+            Text(
               "Ask The Mufti is a free Islamic service. "
                   "Running this platform requires server costs, SMS verification charges, "
                   "development and maintenance expenses.",
-              style: TextStyle(fontSize: 16, height: 1.6),
+              style: textTheme.bodyLarge?.copyWith(
+                height: 1.6,
+              ),
             ),
 
             const SizedBox(height: 10),
 
-            const Text(
+            Text(
               "If you benefit from this project, consider supporting it with a donation.",
-              style: TextStyle(fontSize: 16),
+              style: textTheme.bodyLarge,
             ),
 
             const SizedBox(height: 30),
@@ -57,16 +64,17 @@ class DonationScreen extends StatelessWidget {
             // QUICK DONATION BUTTONS
             // -----------------------
 
-            const Text(
+            Text(
               "Quick Donation",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
             ),
 
             const SizedBox(height: 10),
 
             Row(
               children: [
-
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () {
@@ -123,7 +131,7 @@ class DonationScreen extends StatelessWidget {
               context,
               title: "Donate from India",
               subtitle: "UPI / Razorpay",
-              color: Colors.orange,
+              color: colorScheme.primary,
               icon: Icons.currency_rupee,
               onTap: () {
                 _openLink("https://your-razorpay-link.com");
@@ -138,7 +146,7 @@ class DonationScreen extends StatelessWidget {
               context,
               title: "International Donation",
               subtitle: "Stripe / PayPal",
-              color: Colors.blue,
+              color: colorScheme.primary,
               icon: Icons.public,
               onTap: () {
                 _openLink("https://your-stripe-link.com");
@@ -153,7 +161,7 @@ class DonationScreen extends StatelessWidget {
               context,
               title: "Bank Transfer",
               subtitle: "Direct bank support",
-              color: Colors.green,
+              color: colorScheme.primary,
               icon: Icons.account_balance,
               onTap: () {
                 _openLink("https://your-bank-page.com");
@@ -168,7 +176,7 @@ class DonationScreen extends StatelessWidget {
               context,
               title: "Monthly Support",
               subtitle: "Become a supporter",
-              color: Colors.purple,
+              color: colorScheme.primary,
               icon: Icons.favorite,
               onTap: () {
                 _openLink("https://your-monthly-support-link.com");
@@ -181,31 +189,31 @@ class DonationScreen extends StatelessWidget {
 
             const SizedBox(height: 15),
 
-            const Text(
+            Text(
               "Transparency",
-              style: TextStyle(
+              style: textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
-                fontSize: 18,
               ),
             ),
 
             const SizedBox(height: 8),
 
-            const Text(
+            Text(
               "All donations are used strictly for app development, hosting, "
                   "SMS charges, and expanding this Islamic service.",
-              style: TextStyle(fontSize: 15),
+              style: textTheme.bodyMedium,
             ),
 
             const SizedBox(height: 40),
 
-            const Center(
+            Center(
               child: Text(
                 "May Allah reward you for supporting this effort.",
-                style: TextStyle(
+                style: textTheme.bodyMedium?.copyWith(
                   fontStyle: FontStyle.italic,
-                  color: Colors.grey,
+                  color: colorScheme.onSurfaceVariant,
                 ),
+                textAlign: TextAlign.center,
               ),
             ),
           ],
@@ -222,6 +230,8 @@ class DonationScreen extends StatelessWidget {
         required IconData icon,
         required VoidCallback onTap,
       }) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Card(
       elevation: 3,
       shape: RoundedRectangleBorder(
@@ -230,11 +240,18 @@ class DonationScreen extends StatelessWidget {
       child: ListTile(
         leading: CircleAvatar(
           backgroundColor: color,
-          child: Icon(icon, color: Colors.white),
+          child: Icon(
+            icon,
+            color: colorScheme.onPrimary,
+          ),
         ),
         title: Text(title),
         subtitle: Text(subtitle),
-        trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+        trailing: Icon(
+          Icons.arrow_forward_ios,
+          size: 16,
+          color: colorScheme.onSurfaceVariant,
+        ),
         onTap: onTap,
       ),
     );

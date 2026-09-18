@@ -3,6 +3,10 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // =========================================================
+    // HELPERS
+    // =========================================================
+
     function isLoggedIn() {
       return request.auth != null;
     }
@@ -40,7 +44,13 @@ service cloud.firestore {
       return isOwner() || isAdmin() || isMufti();
     }
 
+
+    // =========================================================
+    // USERS
+    // =========================================================
+
     match /users/{uid} {
+
       allow read: if isLoggedIn();
 
       allow create: if isLoggedIn()
@@ -54,37 +64,97 @@ service cloud.firestore {
       allow update, delete: if isAdminOrOwner();
     }
 
+
+    // =========================================================
+    // CATEGORIES
+    // =========================================================
+
     match /categories/{id} {
+
       allow read: if true;
+
       allow create, update, delete: if isAdminOrOwner();
     }
+
+
+    // =========================================================
+    // SUBCATEGORIES
+    // =========================================================
 
     match /subcategories/{id} {
+
       allow read: if true;
+
       allow create, update, delete: if isAdminOrOwner();
     }
 
+
+    // =========================================================
+    // QUESTIONS
+    // =========================================================
+
     match /questions/{id} {
+
       allow read: if true;
 
+      // User can create only their own new question.
       allow create: if isLoggedIn()
         && request.resource.data.uid == request.auth.uid
-        && request.resource.data.status == "pending";
+        && request.resource.data.status == "new";
 
-      allow update: if isMuftiOrAbove();
+      // Mufti / Admin / Owner can update questions,
+      // but question ownership cannot be changed.
+      allow update: if isMuftiOrAbove()
+        && request.resource.data.uid == resource.data.uid;
+
+      // Only Admin / Owner can delete questions.
       allow delete: if isAdminOrOwner();
+
+
+      // =======================================================
+      // EDIT HISTORY
+      // =======================================================
+
+      match /editHistory/{editId} {
+
+        // Admin / Owner can create edit history.
+        allow create: if isAdminOrOwner();
+
+        // Admin / Owner can read edit history.
+        allow read: if isAdminOrOwner();
+
+        // Edit history cannot be modified or deleted.
+        allow update, delete: if false;
+      }
+
+
+      // =======================================================
+      // BOOKMARKS
+      // =======================================================
+
+      match /bookmarks/{userId} {
+
+        allow read, write: if isLoggedIn()
+          && request.auth.uid == userId;
+      }
     }
 
+
+    // =========================================================
+    // NOTIFICATIONS
+    // =========================================================
+
     match /notifications/{notificationId} {
+
+      // User can read only their own notifications.
       allow read: if isLoggedIn()
         && resource.data.userId == request.auth.uid;
 
-      allow create: if isLoggedIn()
-        && (
-          request.resource.data.userId == request.auth.uid
-          || isAdminOrOwner()
-        );
+      // Notifications are created only by backend.
+      allow create: if false;
 
+      // User can update only their own notification.
+      // Admin / Owner can update any notification.
       allow update: if isLoggedIn()
         && (
           (
@@ -94,19 +164,62 @@ service cloud.firestore {
           || isAdminOrOwner()
         );
 
+      // Only Admin / Owner can delete notifications.
       allow delete: if isAdminOrOwner();
     }
+
+
+    // =========================================================
+    // INVITATIONS
+    // =========================================================
 
     match /invitations/{inviteId} {
-      allow create: if isAdminOrOwner();
+
+      // Only Admin / Owner can create invitations.
+      allow create: if isAdminOrOwner()
+        && request.resource.data.role == "mufti"
+        && request.resource.data.status == "pending"
+        && request.resource.data.email is string
+        && request.resource.data.email.size() > 0
+        && request.resource.data.createdBy == request.auth.uid;
+
+      // Only Admin / Owner can read invitations.
       allow read: if isAdminOrOwner();
-      allow update: if isLoggedIn();
+
+      // Admin / Owner can update any invitation.
+      //
+      // A logged-in user can also accept an invitation,
+      // but only when:
+      // - invitation is currently pending
+      // - invitation email matches Firebase email
+      // - invitation is being changed to accepted
+      // - acceptedBy is their own UID
+      allow update: if isAdminOrOwner()
+        || (
+          isLoggedIn()
+          && resource.data.status == "pending"
+          && request.resource.data.status == "accepted"
+          && request.resource.data.acceptedBy == request.auth.uid
+          && request.resource.data.email is string
+          && request.auth.token.email != null
+          && request.resource.data.email == request.auth.token.email
+        );
+
+      // Only Admin / Owner can delete invitations.
       allow delete: if isAdminOrOwner();
     }
 
+
+    // =========================================================
+    // REVIEWS
+    // =========================================================
+
     match /reviews/{uid} {
+
+      // Logged-in users can see all reviews.
       allow read: if isLoggedIn();
 
+      // User can create only their own review.
       allow create: if isLoggedIn()
         && request.auth.uid == uid
         && request.resource.data.userId == request.auth.uid
@@ -116,6 +229,7 @@ service cloud.firestore {
         && request.resource.data.review.size() >= 3
         && request.resource.data.review.size() <= 1000;
 
+      // User can update only their own review.
       allow update: if isLoggedIn()
         && request.auth.uid == uid
         && resource.data.userId == request.auth.uid
@@ -126,12 +240,21 @@ service cloud.firestore {
         && request.resource.data.review.size() >= 3
         && request.resource.data.review.size() <= 1000;
 
+      // Admin / Owner can delete reviews.
       allow delete: if isAdminOrOwner();
     }
 
+
+    // =========================================================
+    // SUGGESTIONS
+    // =========================================================
+
     match /suggestions/{suggestionId} {
+
+      // Only Admin / Owner can read suggestions.
       allow read: if isAdminOrOwner();
 
+      // User can submit only their own suggestion.
       allow create: if isLoggedIn()
         && request.resource.data.userId == request.auth.uid
         && request.resource.data.suggestion is string
@@ -139,7 +262,10 @@ service cloud.firestore {
         && request.resource.data.suggestion.size() <= 2000
         && request.resource.data.status == "new";
 
+      // Only Admin / Owner can update suggestions.
       allow update: if isAdminOrOwner();
+
+      // Only Admin / Owner can delete suggestions.
       allow delete: if isAdminOrOwner();
     }
   }

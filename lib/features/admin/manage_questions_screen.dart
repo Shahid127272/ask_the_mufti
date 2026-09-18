@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../../core/app_scaffold.dart';
 import '../../core/role_view_controller.dart';
 import '../../models/question_model.dart';
+import '../../providers/font_provider.dart';
 import '../../services/questions_firestore_service.dart';
 
 class ManageQuestionsScreen extends StatefulWidget {
@@ -43,7 +44,7 @@ class _ManageQuestionsScreenState
   }
 
   // =========================================================
-  // EDIT QUESTION DIALOG
+  // EDIT QUESTION
   // =========================================================
 
   Future<void> _editQuestion(
@@ -52,6 +53,7 @@ class _ManageQuestionsScreenState
     final controller = TextEditingController(
       text: question.questionText,
     );
+
     final realRole =
         context.read<RoleViewController>().realRole;
 
@@ -59,6 +61,8 @@ class _ManageQuestionsScreenState
       context: context,
       barrierDismissible: false,
       builder: (dialogContext) {
+        final theme = Theme.of(dialogContext);
+
         return AlertDialog(
           title: const Text('Edit Question'),
           content: TextField(
@@ -80,11 +84,18 @@ class _ManageQuestionsScreenState
               child: const Text('Cancel'),
             ),
             ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor:
+                theme.colorScheme.primary,
+                foregroundColor:
+                theme.colorScheme.onPrimary,
+              ),
               onPressed: () {
                 final text = controller.text.trim();
 
                 if (text.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  ScaffoldMessenger.of(dialogContext)
+                      .showSnackBar(
                     const SnackBar(
                       content: Text(
                         'Sawal khali nahi ho sakta',
@@ -115,6 +126,7 @@ class _ManageQuestionsScreenState
     if (result == question.questionText.trim()) {
       return;
     }
+
     try {
       await _service.editQuestionByAdminOrOwner(
         questionId: question.id,
@@ -122,9 +134,7 @@ class _ManageQuestionsScreenState
         editorRole: realRole,
       );
 
-      if (!mounted) {
-        return;
-      }
+      if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -134,9 +144,7 @@ class _ManageQuestionsScreenState
         ),
       );
     } catch (e) {
-      if (!mounted) {
-        return;
-      }
+      if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -146,7 +154,9 @@ class _ManageQuestionsScreenState
         ),
       );
 
-      debugPrint('Edit question error: $e');
+      debugPrint(
+        'Edit question error: $e',
+      );
     }
   }
 
@@ -198,9 +208,7 @@ class _ManageQuestionsScreenState
         question.id,
       );
 
-      if (!mounted) {
-        return;
-      }
+      if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -210,9 +218,7 @@ class _ManageQuestionsScreenState
         ),
       );
     } catch (e) {
-      if (!mounted) {
-        return;
-      }
+      if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -222,7 +228,9 @@ class _ManageQuestionsScreenState
         ),
       );
 
-      debugPrint('Delete question error: $e');
+      debugPrint(
+        'Delete question error: $e',
+      );
     }
   }
 
@@ -278,7 +286,8 @@ class _ManageQuestionsScreenState
           _selectedStatus == 'all' ||
               question.status == _selectedStatus;
 
-      final query = _searchText.trim().toLowerCase();
+      final query =
+      _searchText.trim().toLowerCase();
 
       final matchesSearch =
           query.isEmpty ||
@@ -311,9 +320,20 @@ class _ManageQuestionsScreenState
         realRole == 'owner' ||
             realRole == 'admin';
 
+    // FontProvider
+    final fonts = context.watch<FontProvider>();
+
+    final questionFont =
+    fonts.resolveFontFamily(
+      fonts.questionFont,
+    );
+
+    // =======================================================
+    // ACCESS DENIED
+    // =======================================================
+
     if (!hasAccess) {
       return AppScaffold(
-        notificationCount: 0,
         body: Center(
           child: Text(
             'Access denied\n(Admin / Owner only)',
@@ -324,32 +344,13 @@ class _ManageQuestionsScreenState
       );
     }
 
+    // =======================================================
+    // MAIN SCREEN
+    // =======================================================
+
     return AppScaffold(
-      notificationCount: 0,
       body: Column(
         children: [
-          // =================================================
-          // HEADER
-          // =================================================
-
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.fromLTRB(
-              16,
-              16,
-              16,
-              12,
-            ),
-            color: theme.colorScheme.primary,
-            child: Text(
-              'Manage Questions',
-              style: theme.textTheme.titleLarge?.copyWith(
-                color: theme.colorScheme.onPrimary,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-
           // =================================================
           // SEARCH
           // =================================================
@@ -370,8 +371,9 @@ class _ManageQuestionsScreenState
               },
               decoration: InputDecoration(
                 hintText: 'Search questions...',
-                prefixIcon: const Icon(
+                prefixIcon: Icon(
                   Icons.search,
+                  color: theme.colorScheme.primary,
                 ),
                 suffixIcon: _searchText.isNotEmpty
                     ? IconButton(
@@ -388,6 +390,12 @@ class _ManageQuestionsScreenState
                 )
                     : null,
                 border: const OutlineInputBorder(),
+                focusedBorder:
+                OutlineInputBorder(
+                  borderSide: BorderSide(
+                    color: theme.colorScheme.primary,
+                  ),
+                ),
               ),
             ),
           ),
@@ -457,7 +465,10 @@ class _ManageQuestionsScreenState
             ),
           ),
 
-          const Divider(height: 1),
+          Divider(
+            height: 1,
+            color: theme.dividerColor,
+          ),
 
           // =================================================
           // QUESTIONS LIST
@@ -466,12 +477,16 @@ class _ManageQuestionsScreenState
           Expanded(
             child: StreamBuilder<
                 QuerySnapshot<Map<String, dynamic>>>(
-              stream: _questionsQuery().snapshots(),
+              stream:
+              _questionsQuery().snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState ==
                     ConnectionState.waiting) {
-                  return const Center(
-                    child: CircularProgressIndicator(),
+                  return Center(
+                    child: CircularProgressIndicator(
+                      color:
+                      theme.colorScheme.primary,
+                    ),
                   );
                 }
 
@@ -501,7 +516,9 @@ class _ManageQuestionsScreenState
                         <QuestionModel>[];
 
                 final questions =
-                _filterQuestions(allQuestions);
+                _filterQuestions(
+                  allQuestions,
+                );
 
                 if (questions.isEmpty) {
                   return const Center(
@@ -512,13 +529,18 @@ class _ManageQuestionsScreenState
                 }
 
                 return ListView.separated(
-                  padding: const EdgeInsets.all(12),
+                  padding:
+                  const EdgeInsets.all(12),
                   itemCount: questions.length,
                   separatorBuilder: (_, __) =>
                   const SizedBox(height: 8),
-                  itemBuilder: (context, index) {
+                  itemBuilder:
+                      (context, index) {
                     final question =
                     questions[index];
+
+                    final primary =
+                        theme.colorScheme.primary;
 
                     return Card(
                       child: Padding(
@@ -526,9 +548,12 @@ class _ManageQuestionsScreenState
                         const EdgeInsets.all(12),
                         child: Column(
                           crossAxisAlignment:
-                          CrossAxisAlignment.start,
+                          CrossAxisAlignment
+                              .start,
                           children: [
+                            // =========================
                             // STATUS
+                            // =========================
 
                             Row(
                               children: [
@@ -537,12 +562,12 @@ class _ManageQuestionsScreenState
                                     question.status,
                                   ),
                                   size: 18,
-                                  color: theme
-                                      .colorScheme
-                                      .primary,
+                                  color: primary,
                                 ),
 
-                                const SizedBox(width: 6),
+                                const SizedBox(
+                                  width: 6,
+                                ),
 
                                 Text(
                                   _statusLabel(
@@ -552,18 +577,19 @@ class _ManageQuestionsScreenState
                                       .textTheme
                                       .labelMedium
                                       ?.copyWith(
-                                    color: theme
-                                        .colorScheme
-                                        .primary,
+                                    color: primary,
                                     fontWeight:
-                                    FontWeight.bold,
+                                    FontWeight
+                                        .bold,
                                   ),
                                 ),
 
                                 const Spacer(),
 
-                                PopupMenuButton<String>(
-                                  onSelected: (value) {
+                                PopupMenuButton<
+                                    String>(
+                                  onSelected:
+                                      (value) {
                                     if (value ==
                                         'edit') {
                                       _editQuestion(
@@ -578,7 +604,9 @@ class _ManageQuestionsScreenState
                                       );
                                     }
                                   },
-                                  itemBuilder: (_) => const [
+                                  itemBuilder:
+                                      (_) =>
+                                  const [
                                     PopupMenuItem(
                                       value: 'edit',
                                       child: Row(
@@ -596,11 +624,13 @@ class _ManageQuestionsScreenState
                                       ),
                                     ),
                                     PopupMenuItem(
-                                      value: 'delete',
+                                      value:
+                                      'delete',
                                       child: Row(
                                         children: [
                                           Icon(
-                                            Icons.delete,
+                                            Icons
+                                                .delete,
                                           ),
                                           SizedBox(
                                             width: 10,
@@ -616,9 +646,13 @@ class _ManageQuestionsScreenState
                               ],
                             ),
 
-                            const SizedBox(height: 10),
+                            const SizedBox(
+                              height: 10,
+                            ),
 
+                            // =========================
                             // QUESTION
+                            // =========================
 
                             Text(
                               question.questionText,
@@ -626,31 +660,51 @@ class _ManageQuestionsScreenState
                                   .textTheme
                                   .titleMedium
                                   ?.copyWith(
+                                fontFamily:
+                                questionFont,
+                                fontSize:
+                                fonts.fontSize,
                                 fontWeight:
-                                FontWeight.w600,
+                                fonts.fontWeight,
+                                fontStyle:
+                                fonts.isItalic
+                                    ? FontStyle
+                                    .italic
+                                    : FontStyle
+                                    .normal,
                               ),
                             ),
 
-                            const SizedBox(height: 8),
+                            const SizedBox(
+                              height: 8,
+                            ),
 
+                            // =========================
                             // ASKED BY
+                            // =========================
 
                             Text(
                               'Asked by: '
                                   '${question.askedBy}',
-                              style:
-                              theme.textTheme.bodySmall,
+                              style: theme
+                                  .textTheme
+                                  .bodySmall,
                             ),
 
-                            const SizedBox(height: 12),
+                            const SizedBox(
+                              height: 12,
+                            ),
 
+                            // =========================
                             // BUTTONS
+                            // =========================
 
                             Row(
                               children: [
                                 Expanded(
                                   child:
-                                  OutlinedButton.icon(
+                                  OutlinedButton
+                                      .icon(
                                     onPressed: () {
                                       _editQuestion(
                                         question,
@@ -659,13 +713,16 @@ class _ManageQuestionsScreenState
                                     icon: const Icon(
                                       Icons.edit,
                                     ),
-                                    label: const Text(
+                                    label:
+                                    const Text(
                                       'Edit Question',
                                     ),
                                   ),
                                 ),
 
-                                const SizedBox(width: 8),
+                                const SizedBox(
+                                  width: 8,
+                                ),
 
                                 IconButton(
                                   tooltip:
@@ -675,8 +732,11 @@ class _ManageQuestionsScreenState
                                       question,
                                     );
                                   },
-                                  icon: const Icon(
+                                  icon: Icon(
                                     Icons.delete,
+                                    color: theme
+                                        .colorScheme
+                                        .error,
                                   ),
                                 ),
                               ],

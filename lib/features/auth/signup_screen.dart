@@ -1,9 +1,16 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../services/auth_service.dart';
+import '../../services/invite_service.dart';
 
 class SignupScreen extends StatefulWidget {
-  const SignupScreen({super.key});
+  final String? inviteId;
+
+  const SignupScreen({
+    super.key,
+    this.inviteId,
+  });
 
   @override
   State<SignupScreen> createState() => _SignupScreenState();
@@ -17,6 +24,7 @@ class _SignupScreenState extends State<SignupScreen> {
   final confirm = TextEditingController();
 
   final AuthService _auth = AuthService();
+  final InviteService _inviteService = InviteService();
 
   bool loading = false;
   bool hidePass = true;
@@ -37,31 +45,118 @@ class _SignupScreenState extends State<SignupScreen> {
   Future<void> signup() async {
     if (!_formKey.currentState!.validate()) return;
 
-    setState(() => loading = true);
+    if (loading) return;
 
-    final error = await _auth.signUp(
-      email: email.text.trim(),
-      password: pass.text,
-      // Screen Name abhi nahi lenge.
-      displayName: '',
-    );
+    setState(() {
+      loading = true;
+    });
 
-    if (!mounted) return;
+    final enteredEmail = email.text.trim().toLowerCase();
 
-    setState(() => loading = false);
+    try {
+      // ========================================================
+      // CREATE ACCOUNT
+      // ========================================================
 
-    if (error != null) {
-      _show(error, error: true);
-      return;
+      final error = await _auth.signUp(
+        email: enteredEmail,
+        password: pass.text,
+        // Screen Name abhi nahi lenge.
+        displayName: '',
+      );
+
+      if (!mounted) return;
+
+      if (error != null) {
+        setState(() {
+          loading = false;
+        });
+
+        _show(error, error: true);
+        return;
+      }
+
+      // ========================================================
+      // INVITED MUFTI
+      // ========================================================
+
+      if (widget.inviteId != null &&
+          widget.inviteId!.trim().isNotEmpty) {
+        final user =
+            FirebaseAuth.instance.currentUser;
+
+        if (user == null) {
+          setState(() {
+            loading = false;
+          });
+
+          _show(
+            'Account created, but invitation could not be accepted.',
+            error: true,
+          );
+          return;
+        }
+
+        try {
+          await _inviteService.acceptInvite(
+            inviteId: widget.inviteId!.trim(),
+            uid: user.uid,
+            email: enteredEmail,
+          );
+
+          if (!mounted) return;
+
+          setState(() {
+            loading = false;
+          });
+
+          _show(
+            'Account created successfully. You have joined as Mufti.',
+          );
+
+          Navigator.of(context).pop();
+          return;
+        } catch (e) {
+          if (!mounted) return;
+
+          setState(() {
+            loading = false;
+          });
+
+          _show(
+            'Account created, but Mufti invitation could not be accepted.\n$e',
+            error: true,
+          );
+
+          return;
+        }
+      }
+
+      // ========================================================
+      // NORMAL USER SIGNUP
+      // ========================================================
+
+      setState(() {
+        loading = false;
+      });
+
+      _show(
+        'Account created. Please verify your email.',
+      );
+
+      Navigator.of(context).pop();
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        loading = false;
+      });
+
+      _show(
+        'Could not create account.\n$e',
+        error: true,
+      );
     }
-
-    // AuthState change ke through RootScreen
-    // AccountSetupScreen par le jayega.
-    _show(
-      'Account created. Please verify your email.',
-    );
-
-    Navigator.of(context).pop();
   }
 
   // ============================================================
@@ -72,13 +167,20 @@ class _SignupScreenState extends State<SignupScreen> {
       String message, {
         bool error = false,
       }) {
+    if (!mounted) return;
+
+    final colorScheme =
+        Theme.of(context).colorScheme;
+
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
           content: Text(message),
           backgroundColor:
-          error ? Colors.red : Colors.green,
+          error
+              ? colorScheme.error
+              : colorScheme.primary,
         ),
       );
   }
@@ -89,10 +191,23 @@ class _SignupScreenState extends State<SignupScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final textTheme = theme.textTheme;
+
+    final isMuftiInvite =
+        widget.inviteId != null &&
+            widget.inviteId!.trim().isNotEmpty;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Create Account"),
+        title: Text(
+          isMuftiInvite
+              ? "Mufti Registration"
+              : "Create Account",
+        ),
       ),
+
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
@@ -102,30 +217,39 @@ class _SignupScreenState extends State<SignupScreen> {
               children: [
                 const SizedBox(height: 20),
 
-                const Icon(
-                  Icons.person_add_alt_1,
+                Icon(
+                  isMuftiInvite
+                      ? Icons.school_outlined
+                      : Icons.person_add_alt_1,
                   size: 65,
+                  color: colorScheme.primary,
                 ),
 
                 const SizedBox(height: 20),
 
-                const Text(
-                  "Create your Ask The Mufti account",
+                Text(
+                  isMuftiInvite
+                      ? "Join Ask The Mufti as a Mufti"
+                      : "Create your Ask The Mufti account",
                   textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 21,
+                  style:
+                  textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
                 ),
 
                 const SizedBox(height: 8),
 
-                const Text(
-                  "Create your account, complete verification, "
+                Text(
+                  isMuftiInvite
+                      ? "Complete your registration using the invitation."
+                      : "Create your account, complete verification, "
                       "then choose your Screen Name.",
                   textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Colors.grey,
+                  style:
+                  textTheme.bodyMedium?.copyWith(
+                    color:
+                    colorScheme.onSurfaceVariant,
                   ),
                 ),
 
@@ -142,13 +266,17 @@ class _SignupScreenState extends State<SignupScreen> {
                   autofillHints: const [
                     AutofillHints.email,
                   ],
-                  decoration: const InputDecoration(
+                  decoration:
+                  const InputDecoration(
                     labelText: "Email",
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.email_outlined),
+                    border:
+                    OutlineInputBorder(),
+                    prefixIcon:
+                    Icon(Icons.email_outlined),
                   ),
                   validator: (value) {
-                    final v = value?.trim() ?? '';
+                    final v =
+                        value?.trim() ?? '';
 
                     if (v.isEmpty) {
                       return "Enter email";
@@ -172,12 +300,17 @@ class _SignupScreenState extends State<SignupScreen> {
                 TextFormField(
                   controller: pass,
                   obscureText: hidePass,
-                  decoration: InputDecoration(
+                  decoration:
+                  InputDecoration(
                     labelText: "Password",
-                    border: const OutlineInputBorder(),
+                    border:
+                    const OutlineInputBorder(),
                     prefixIcon:
-                    const Icon(Icons.lock_outline),
-                    suffixIcon: IconButton(
+                    const Icon(
+                      Icons.lock_outline,
+                    ),
+                    suffixIcon:
+                    IconButton(
                       icon: Icon(
                         hidePass
                             ? Icons.visibility
@@ -185,13 +318,15 @@ class _SignupScreenState extends State<SignupScreen> {
                       ),
                       onPressed: () {
                         setState(() {
-                          hidePass = !hidePass;
+                          hidePass =
+                          !hidePass;
                         });
                       },
                     ),
                   ),
                   validator: (value) {
-                    final v = value ?? '';
+                    final v =
+                        value ?? '';
 
                     if (v.length < 6) {
                       return "Minimum 6 characters";
@@ -209,13 +344,20 @@ class _SignupScreenState extends State<SignupScreen> {
 
                 TextFormField(
                   controller: confirm,
-                  obscureText: hideConfirm,
-                  decoration: InputDecoration(
-                    labelText: "Confirm Password",
-                    border: const OutlineInputBorder(),
+                  obscureText:
+                  hideConfirm,
+                  decoration:
+                  InputDecoration(
+                    labelText:
+                    "Confirm Password",
+                    border:
+                    const OutlineInputBorder(),
                     prefixIcon:
-                    const Icon(Icons.lock_outline),
-                    suffixIcon: IconButton(
+                    const Icon(
+                      Icons.lock_outline,
+                    ),
+                    suffixIcon:
+                    IconButton(
                       icon: Icon(
                         hideConfirm
                             ? Icons.visibility
@@ -223,13 +365,15 @@ class _SignupScreenState extends State<SignupScreen> {
                       ),
                       onPressed: () {
                         setState(() {
-                          hideConfirm = !hideConfirm;
+                          hideConfirm =
+                          !hideConfirm;
                         });
                       },
                     ),
                   ),
                   validator: (value) {
-                    final v = value ?? '';
+                    final v =
+                        value ?? '';
 
                     if (v.isEmpty) {
                       return "Confirm your password";
@@ -254,20 +398,33 @@ class _SignupScreenState extends State<SignupScreen> {
                   height: 50,
                   child: ElevatedButton(
                     onPressed:
-                    loading ? null : signup,
+                    loading
+                        ? null
+                        : signup,
                     child: loading
-                        ? const SizedBox(
+                        ? SizedBox(
                       height: 22,
                       width: 22,
                       child:
                       CircularProgressIndicator(
+                        color:
+                        colorScheme
+                            .onPrimary,
                         strokeWidth: 2,
                       ),
                     )
-                        : const Text(
-                      "Create Account",
-                      style: TextStyle(
+                        : Text(
+                      isMuftiInvite
+                          ? "Join as Mufti"
+                          : "Create Account",
+                      style:
+                      textTheme
+                          .labelLarge
+                          ?.copyWith(
                         fontSize: 16,
+                        color:
+                        colorScheme
+                            .onPrimary,
                       ),
                     ),
                   ),
@@ -282,7 +439,10 @@ class _SignupScreenState extends State<SignupScreen> {
                 TextButton(
                   onPressed: loading
                       ? null
-                      : () => Navigator.pop(context),
+                      : () =>
+                      Navigator.pop(
+                        context,
+                      ),
                   child: const Text(
                     "Already have an account? Login",
                   ),

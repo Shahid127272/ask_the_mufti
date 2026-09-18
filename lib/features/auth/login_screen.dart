@@ -7,12 +7,10 @@ class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() =>
-      _LoginScreenState();
+  State<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState
-    extends State<LoginScreen> {
+class _LoginScreenState extends State<LoginScreen> {
   final AuthService _auth = AuthService();
 
   final TextEditingController email =
@@ -288,13 +286,22 @@ class _LoginScreenState
                 borderRadius:
                 BorderRadius.circular(22),
               ),
-              title: const Text(
+              title: Text(
                 "Forgot Password?",
-                style: TextStyle(
+                style:
+                Theme.of(
+                  dialogContentContext,
+                )
+                    .textTheme
+                    .titleLarge
+                    ?.copyWith(
                   fontWeight:
                   FontWeight.w800,
-                  color:
-                  Color(0xFF075E61),
+                  color: Theme.of(
+                    dialogContentContext,
+                  )
+                      .colorScheme
+                      .primary,
                 ),
               ),
               content: Column(
@@ -306,9 +313,17 @@ class _LoginScreenState
                   Text(
                     "Enter your registered email address. "
                         "We will send you a password reset link.",
-                    style: TextStyle(
-                      color:
-                      Colors.grey.shade700,
+                    style: Theme.of(
+                      dialogContentContext,
+                    )
+                        .textTheme
+                        .bodyMedium
+                        ?.copyWith(
+                      color: Theme.of(
+                        dialogContentContext,
+                      )
+                          .colorScheme
+                          .onSurfaceVariant,
                       height: 1.4,
                     ),
                   ),
@@ -369,23 +384,30 @@ class _LoginScreenState
                   style:
                   ElevatedButton.styleFrom(
                     backgroundColor:
-                    const Color(
-                      0xFF079B9D,
-                    ),
+                    Theme.of(
+                      dialogContentContext,
+                    )
+                        .colorScheme
+                        .primary,
                     foregroundColor:
-                    Colors.white,
+                    Theme.of(
+                      dialogContentContext,
+                    )
+                        .colorScheme
+                        .onPrimary,
                   ),
-                  child:
-                  dialogLoading
-                      ? const SizedBox(
+                  child: dialogLoading
+                      ? SizedBox(
                     height: 20,
                     width: 20,
                     child:
                     CircularProgressIndicator(
-                      strokeWidth:
-                      2,
-                      color:
-                      Colors.white,
+                      strokeWidth: 2,
+                      color: Theme.of(
+                        dialogContentContext,
+                      )
+                          .colorScheme
+                          .onPrimary,
                     ),
                   )
                       : const Text(
@@ -431,10 +453,12 @@ class _LoginScreenState
           SnackBarBehavior.floating,
           backgroundColor:
           error
-              ? Colors.red
-              : const Color(
-            0xFF006D70,
-          ),
+              ? Theme.of(context)
+              .colorScheme
+              .error
+              : Theme.of(context)
+              .colorScheme
+              .primary,
           shape:
           RoundedRectangleBorder(
             borderRadius:
@@ -459,7 +483,9 @@ class _LoginScreenState
           behavior:
           SnackBarBehavior.floating,
           backgroundColor:
-          const Color(0xFF079B9D),
+          Theme.of(context)
+              .colorScheme
+              .primary,
           shape:
           RoundedRectangleBorder(
             borderRadius:
@@ -486,7 +512,9 @@ class _LoginScreenState
         behavior:
         SnackBarBehavior.floating,
         backgroundColor:
-        const Color(0xFF006D70),
+        Theme.of(context)
+            .colorScheme
+            .primary,
         shape:
         RoundedRectangleBorder(
           borderRadius:
@@ -517,9 +545,16 @@ class _LoginScreenState
     final size =
         MediaQuery.of(context).size;
 
+    final theme = Theme.of(context);
+    final colorScheme =
+        theme.colorScheme;
+
+    final primary =
+        colorScheme.primary;
+
     return Scaffold(
       backgroundColor:
-      const Color(0xFFE9FAF9),
+      colorScheme.surface,
       body: Stack(
         children: [
           // ======================================================
@@ -530,7 +565,7 @@ class _LoginScreenState
             width: double.infinity,
             height: double.infinity,
             decoration:
-            const BoxDecoration(
+            BoxDecoration(
               gradient:
               LinearGradient(
                 begin:
@@ -538,9 +573,13 @@ class _LoginScreenState
                 end:
                 Alignment.bottomCenter,
                 colors: [
-                  Color(0xFFB9ECEA),
-                  Color(0xFFEFFBFA),
-                  Color(0xFFD5F3F1),
+                  primary.withValues(
+                    alpha: .16,
+                  ),
+                  colorScheme.surface,
+                  primary.withValues(
+                    alpha: .08,
+                  ),
                 ],
               ),
             ),
@@ -558,10 +597,7 @@ class _LoginScreenState
               height: 330,
               decoration:
               BoxDecoration(
-                color:
-                const Color(
-                  0xFF079B9D,
-                ).withValues(
+                color: primary.withValues(
                   alpha: .14,
                 ),
                 borderRadius:
@@ -605,24 +641,19 @@ class _LoginScreenState
                       shape:
                       BoxShape.circle,
                       color:
-                      Colors.white
+                      colorScheme.surface
                           .withValues(
                         alpha: .90,
                       ),
                       border:
                       Border.all(
-                        color:
-                        const Color(
-                          0xFF006D70,
-                        ),
+                        color: primary,
                         width: 3,
                       ),
                       boxShadow: [
                         BoxShadow(
                           color:
-                          const Color(
-                            0xFF006D70,
-                          ).withValues(
+                          primary.withValues(
                             alpha: .18,
                           ),
                           blurRadius: 20,
@@ -643,14 +674,11 @@ class _LoginScreenState
                             error,
                             stackTrace,
                             ) {
-                          return const Icon(
+                          return Icon(
                             Icons
                                 .menu_book_rounded,
                             size: 55,
-                            color:
-                            Color(
-                              0xFF006D70,
-                            ),
+                            color: primary,
                           );
                         },
                       ),
@@ -665,17 +693,18 @@ class _LoginScreenState
                   // APP NAME
                   // =================================================
 
-                  const Text(
+                  Text(
                     'Ask The Mufti',
                     textAlign:
                     TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 31,
+                    style: theme
+                        .textTheme
+                        .headlineMedium
+                        ?.copyWith(
                       fontWeight:
                       FontWeight.w800,
                       letterSpacing: .2,
-                      color:
-                      Color(0xFF075E61),
+                      color: primary,
                     ),
                   ),
 
@@ -683,15 +712,19 @@ class _LoginScreenState
                     height: 5,
                   ),
 
-                  const Text(
+                  Text(
                     'Ask  •  Learn  •  Understand',
-                    style: TextStyle(
-                      fontSize: 15,
+                    style: theme
+                        .textTheme
+                        .bodyMedium
+                        ?.copyWith(
                       fontWeight:
                       FontWeight.w600,
                       letterSpacing: .7,
                       color:
-                      Color(0xFF318B8C),
+                      primary.withValues(
+                        alpha: .78,
+                      ),
                     ),
                   ),
 
@@ -716,7 +749,7 @@ class _LoginScreenState
                     decoration:
                     BoxDecoration(
                       color:
-                      Colors.white
+                      colorScheme.surface
                           .withValues(
                         alpha: .96,
                       ),
@@ -726,18 +759,14 @@ class _LoginScreenState
                       ),
                       border:
                       Border.all(
-                        color:
-                        const Color(
-                          0xFF8AD6D3,
-                        ),
+                        color: colorScheme
+                            .outlineVariant,
                         width: 1.2,
                       ),
                       boxShadow: [
                         BoxShadow(
                           color:
-                          const Color(
-                            0xFF006D70,
-                          ).withValues(
+                          primary.withValues(
                             alpha: .13,
                           ),
                           blurRadius: 25,
@@ -756,16 +785,15 @@ class _LoginScreenState
                         // WELCOME
                         // -----------------------------------------
 
-                        const Text(
+                        Text(
                           'Welcome Back',
-                          style: TextStyle(
-                            fontSize: 26,
+                          style: theme
+                              .textTheme
+                              .headlineSmall
+                              ?.copyWith(
                             fontWeight:
                             FontWeight.w800,
-                            color:
-                            Color(
-                              0xFF075E61,
-                            ),
+                            color: primary,
                           ),
                         ),
 
@@ -777,12 +805,13 @@ class _LoginScreenState
                           'Login to continue asking and learning',
                           textAlign:
                           TextAlign.center,
-                          style:
-                          TextStyle(
+                          style: theme
+                              .textTheme
+                              .bodyMedium
+                              ?.copyWith(
                             fontSize: 14,
-                            color: Colors
-                                .grey
-                                .shade600,
+                            color: colorScheme
+                                .onSurfaceVariant,
                           ),
                         ),
 
@@ -843,9 +872,8 @@ class _LoginScreenState
                                   : Icons
                                   .visibility_off_outlined,
                               color:
-                              const Color(
-                                0xFF527174,
-                              ),
+                              colorScheme
+                                  .onSurfaceVariant,
                             ),
                           ),
                         ),
@@ -868,9 +896,7 @@ class _LoginScreenState
                                 value:
                                 _rememberMe,
                                 activeColor:
-                                const Color(
-                                  0xFF079B9D,
-                                ),
+                                primary,
                                 shape:
                                 RoundedRectangleBorder(
                                   borderRadius:
@@ -894,19 +920,17 @@ class _LoginScreenState
                               width: 5,
                             ),
 
-                            const Text(
+                            Text(
                               'Remember me',
-                              style:
-                              TextStyle(
-                                fontSize:
-                                13.5,
-                                color:
-                                Color(
-                                  0xFF40575A,
-                                ),
+                              style: theme
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
+                                fontSize: 13.5,
+                                color: colorScheme
+                                    .onSurfaceVariant,
                                 fontWeight:
-                                FontWeight
-                                    .w500,
+                                FontWeight.w500,
                               ),
                             ),
 
@@ -925,23 +949,19 @@ class _LoginScreenState
                               TextButton
                                   .styleFrom(
                                 padding:
-                                EdgeInsets
-                                    .zero,
+                                EdgeInsets.zero,
                               ),
                               child:
-                              const Text(
+                              Text(
                                 'Forgot password?',
-                                style:
-                                TextStyle(
-                                  color:
-                                  Color(
-                                    0xFF079B9D,
-                                  ),
+                                style: theme
+                                    .textTheme
+                                    .bodySmall
+                                    ?.copyWith(
+                                  color: primary,
                                   fontWeight:
-                                  FontWeight
-                                      .w700,
-                                  fontSize:
-                                  13.5,
+                                  FontWeight.w700,
+                                  fontSize: 13.5,
                                 ),
                               ),
                             ),
@@ -970,16 +990,13 @@ class _LoginScreenState
                             ElevatedButton
                                 .styleFrom(
                               backgroundColor:
-                              const Color(
-                                0xFF079B9D,
-                              ),
+                              primary,
                               foregroundColor:
-                              Colors.white,
+                              colorScheme
+                                  .onPrimary,
                               elevation: 4,
                               shadowColor:
-                              const Color(
-                                0xFF079B9D,
-                              ).withValues(
+                              primary.withValues(
                                 alpha: .35,
                               ),
                               shape:
@@ -992,7 +1009,7 @@ class _LoginScreenState
                               ),
                             ),
                             child: _loading
-                                ? const SizedBox(
+                                ? SizedBox(
                               width: 24,
                               height: 24,
                               child:
@@ -1000,19 +1017,17 @@ class _LoginScreenState
                                 strokeWidth:
                                 2.5,
                                 color:
-                                Colors
-                                    .white,
+                                colorScheme
+                                    .onPrimary,
                               ),
                             )
                                 : const Text(
                               'Login',
                               style:
                               TextStyle(
-                                fontSize:
-                                17,
+                                fontSize: 17,
                                 fontWeight:
-                                FontWeight
-                                    .w800,
+                                FontWeight.w800,
                               ),
                             ),
                           ),
@@ -1031,9 +1046,8 @@ class _LoginScreenState
                             Expanded(
                               child:
                               Divider(
-                                color: Colors
-                                    .grey
-                                    .shade300,
+                                color: colorScheme
+                                    .outlineVariant,
                               ),
                             ),
 
@@ -1046,11 +1060,12 @@ class _LoginScreenState
                               child:
                               Text(
                                 'or continue with',
-                                style:
-                                TextStyle(
-                                  color: Colors
-                                      .grey
-                                      .shade600,
+                                style: theme
+                                    .textTheme
+                                    .bodySmall
+                                    ?.copyWith(
+                                  color: colorScheme
+                                      .onSurfaceVariant,
                                   fontSize: 13,
                                 ),
                               ),
@@ -1059,9 +1074,8 @@ class _LoginScreenState
                             Expanded(
                               child:
                               Divider(
-                                color: Colors
-                                    .grey
-                                    .shade300,
+                                color: colorScheme
+                                    .outlineVariant,
                               ),
                             ),
                           ],
@@ -1132,11 +1146,12 @@ class _LoginScreenState
                           children: [
                             Text(
                               "Don't have an account? ",
-                              style:
-                              TextStyle(
-                                color: Colors
-                                    .grey
-                                    .shade600,
+                              style: theme
+                                  .textTheme
+                                  .bodyMedium
+                                  ?.copyWith(
+                                color: colorScheme
+                                    .onSurfaceVariant,
                                 fontSize: 14,
                               ),
                             ),
@@ -1154,19 +1169,16 @@ class _LoginScreenState
                                 );
                               },
                               child:
-                              const Text(
+                              Text(
                                 'Sign up',
-                                style:
-                                TextStyle(
-                                  color:
-                                  Color(
-                                    0xFF079B9D,
-                                  ),
+                                style: theme
+                                    .textTheme
+                                    .bodyMedium
+                                    ?.copyWith(
+                                  color: primary,
                                   fontWeight:
-                                  FontWeight
-                                      .w800,
-                                  fontSize:
-                                  14,
+                                  FontWeight.w800,
+                                  fontSize: 14,
                                 ),
                               ),
                             ),
@@ -1195,10 +1207,7 @@ class _LoginScreenState
                     ),
                     decoration:
                     BoxDecoration(
-                      color:
-                      const Color(
-                        0xFF006D70,
-                      ),
+                      color: primary,
                       borderRadius:
                       BorderRadius.circular(
                         25,
@@ -1207,11 +1216,12 @@ class _LoginScreenState
                     child:
                     Column(
                       children: [
-                        const Icon(
+                        Icon(
                           Icons
                               .menu_book_rounded,
                           color:
-                          Colors.white,
+                          colorScheme
+                              .onPrimary,
                           size: 34,
                         ),
 
@@ -1219,21 +1229,22 @@ class _LoginScreenState
                           height: 8,
                         ),
 
-                        const Text(
+                        Text(
                           'Seeking knowledge is an obligation',
                           textAlign:
                           TextAlign.center,
-                          style:
-                          TextStyle(
+                          style: theme
+                              .textTheme
+                              .bodyMedium
+                              ?.copyWith(
                             color:
-                            Colors.white,
+                            colorScheme
+                                .onPrimary,
                             fontSize: 14,
                             fontWeight:
-                            FontWeight
-                                .w600,
+                            FontWeight.w600,
                             fontStyle:
-                            FontStyle
-                                .italic,
+                            FontStyle.italic,
                           ),
                         ),
 
@@ -1245,10 +1256,13 @@ class _LoginScreenState
                           'upon every Muslim',
                           textAlign:
                           TextAlign.center,
-                          style:
-                          TextStyle(
-                            color: Colors
-                                .white
+                          style: theme
+                              .textTheme
+                              .bodySmall
+                              ?.copyWith(
+                            color:
+                            colorScheme
+                                .onPrimary
                                 .withValues(
                               alpha: .83,
                             ),
@@ -1263,8 +1277,9 @@ class _LoginScreenState
                         Container(
                           height: 1,
                           width: 80,
-                          color: Colors
-                              .white
+                          color:
+                          colorScheme
+                              .onPrimary
                               .withValues(
                             alpha: .35,
                           ),
@@ -1276,16 +1291,18 @@ class _LoginScreenState
 
                         Text(
                           'Ask • Learn • Understand',
-                          style:
-                          TextStyle(
-                            color: Colors
-                                .white
+                          style: theme
+                              .textTheme
+                              .labelSmall
+                              ?.copyWith(
+                            color:
+                            colorScheme
+                                .onPrimary
                                 .withValues(
                               alpha: .8,
                             ),
                             fontSize: 11,
-                            letterSpacing:
-                            1,
+                            letterSpacing: 1,
                           ),
                         ),
                       ],
@@ -1318,6 +1335,12 @@ class _LoginScreenState
     TextInputType? keyboardType,
     Widget? suffix,
   }) {
+    final theme =
+    Theme.of(context);
+
+    final colorScheme =
+        theme.colorScheme;
+
     return TextField(
       controller:
       controller,
@@ -1328,9 +1351,9 @@ class _LoginScreenState
       textInputAction:
       TextInputAction.next,
       style:
-      const TextStyle(
+      TextStyle(
         color:
-        Color(0xFF183B3D),
+        colorScheme.onSurface,
         fontSize: 15,
       ),
       decoration:
@@ -1339,24 +1362,23 @@ class _LoginScreenState
         hintStyle:
         TextStyle(
           color:
-          Colors.grey.shade500,
+          colorScheme
+              .onSurfaceVariant,
           fontSize: 14,
         ),
         prefixIcon:
         Icon(
           icon,
           color:
-          const Color(
-            0xFF527174,
-          ),
+          colorScheme
+              .onSurfaceVariant,
         ),
         suffixIcon:
         suffix,
         filled: true,
         fillColor:
-        const Color(
-          0xFFF9FCFC,
-        ),
+        colorScheme
+            .surfaceContainerHighest,
         contentPadding:
         const EdgeInsets
             .symmetric(
@@ -1370,9 +1392,10 @@ class _LoginScreenState
             15,
           ),
           borderSide:
-          const BorderSide(
+          BorderSide(
             color:
-            Color(0xFFC9E6E5),
+            colorScheme
+                .outlineVariant,
           ),
         ),
         focusedBorder:
@@ -1382,9 +1405,9 @@ class _LoginScreenState
             15,
           ),
           borderSide:
-          const BorderSide(
+          BorderSide(
             color:
-            Color(0xFF079B9D),
+            colorScheme.primary,
             width: 1.7,
           ),
         ),
@@ -1402,6 +1425,12 @@ class _LoginScreenState
     required VoidCallback?
     onPressed,
   }) {
+    final theme =
+    Theme.of(context);
+
+    final colorScheme =
+        theme.colorScheme;
+
     return SizedBox(
       height: 52,
       child:
@@ -1411,15 +1440,14 @@ class _LoginScreenState
         style:
         OutlinedButton.styleFrom(
           foregroundColor:
-          const Color(
-            0xFF21494B,
-          ),
+          colorScheme.onSurface,
           backgroundColor:
-          Colors.white,
+          colorScheme.surface,
           side:
-          const BorderSide(
+          BorderSide(
             color:
-            Color(0xFFD5E8E7),
+            colorScheme
+                .outlineVariant,
           ),
           shape:
           RoundedRectangleBorder(
@@ -1439,9 +1467,7 @@ class _LoginScreenState
               icon,
               size: 25,
               color:
-              const Color(
-                0xFF08777A,
-              ),
+              colorScheme.primary,
             ),
 
             const SizedBox(

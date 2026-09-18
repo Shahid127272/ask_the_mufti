@@ -533,7 +533,7 @@ class _ManageSuggestionsScreenState
   Widget build(BuildContext context) {
     final role =
         context.watch<RoleViewController>()
-            .activeRole;
+            .realRole;
 
     // ==========================================================
     // ACCESS CHECK

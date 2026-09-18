@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../../core/app_scaffold.dart';
+
 class AdminAnalyticsScreen extends StatefulWidget {
   const AdminAnalyticsScreen({super.key});
 
@@ -30,15 +32,25 @@ class _AdminAnalyticsScreenState
   }
 
   Future<void> _loadAnalytics() async {
-    setState(() => _loading = true);
+    if (mounted) {
+      setState(() => _loading = true);
+    }
 
     final db = FirebaseFirestore.instance;
 
-    final questionsSnap = await db.collection('questions').get();
-    final usersSnap = await db.collection('users').get();
+    final questionsSnap =
+    await db.collection('questions').get();
+
+    final usersSnap =
+    await db.collection('users').get();
 
     final now = DateTime.now();
-    final todayStart = DateTime(now.year, now.month, now.day);
+
+    final todayStart = DateTime(
+      now.year,
+      now.month,
+      now.day,
+    );
 
     int tq = 0;
     int pq = 0;
@@ -54,13 +66,20 @@ class _AdminAnalyticsScreenState
       final status = data['status'];
       final Timestamp? createdAt = data['createdAt'];
 
-      if (status == 'pending') pq++;
-      if (status == 'published') pubq++;
+      if (status == 'pending') {
+        pq++;
+      }
+
+      if (status == 'published') {
+        pubq++;
+      }
 
       if (createdAt != null) {
         final date = createdAt.toDate();
+
         if (date.isAfter(todayStart)) {
           todayQ++;
+
           if (status == 'published') {
             todayPub++;
           }
@@ -76,8 +95,12 @@ class _AdminAnalyticsScreenState
 
       users++;
 
-      if (role == 'mufti') muftis++;
+      if (role == 'mufti') {
+        muftis++;
+      }
     }
+
+    if (!mounted) return;
 
     setState(() {
       totalQuestions = tq;
@@ -96,76 +119,93 @@ class _AdminAnalyticsScreenState
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Admin Analytics'),
-      ),
+    final theme = Theme.of(context);
+
+    return AppScaffold(
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(
+        child: CircularProgressIndicator(),
+      )
           : RefreshIndicator(
         onRefresh: _loadAnalytics,
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
+            /// ================= QUESTIONS =================
+
+            _SectionTitle(
+              title: 'Questions',
+            ),
+
+            const SizedBox(height: 12),
+
             _StatCard(
               title: 'Total Questions',
               value: totalQuestions,
               icon: Icons.help_outline,
-              color: Colors.blue,
+              color: theme.colorScheme.primary,
             ),
+
             _StatCard(
               title: 'Pending Questions',
               value: pendingQuestions,
               icon: Icons.pending_actions,
-              color: Colors.orange,
+              color: theme.colorScheme.primary,
             ),
+
             _StatCard(
               title: 'Published Answers',
               value: publishedQuestions,
               icon: Icons.check_circle,
-              color: Colors.green,
+              color: theme.colorScheme.primary,
             ),
 
             const SizedBox(height: 24),
 
-            Text(
-              'Today',
-              style: Theme.of(context).textTheme.titleMedium,
+            /// ================= TODAY =================
+
+            _SectionTitle(
+              title: 'Today',
             ),
+
             const SizedBox(height: 12),
 
             _StatCard(
               title: 'Questions Today',
               value: todayQuestions,
               icon: Icons.today,
-              color: Colors.indigo,
+              color: theme.colorScheme.primary,
             ),
+
             _StatCard(
               title: 'Published Today',
               value: todayPublished,
               icon: Icons.publish,
-              color: Colors.teal,
+              color: theme.colorScheme.primary,
             ),
 
             const SizedBox(height: 24),
 
-            Text(
-              'Users',
-              style: Theme.of(context).textTheme.titleMedium,
+            /// ================= USERS =================
+
+            _SectionTitle(
+              title: 'Users',
             ),
+
             const SizedBox(height: 12),
 
             _StatCard(
               title: 'Total Users',
               value: totalUsers,
               icon: Icons.people,
-              color: Colors.grey,
+              color: theme.colorScheme.primary,
             ),
+
             _StatCard(
               title: 'Muftis',
               value: totalMuftis,
               icon: Icons.gavel,
-              color: Colors.green,
+              color: theme.colorScheme.primary,
             ),
           ],
         ),
@@ -173,6 +213,31 @@ class _AdminAnalyticsScreenState
     );
   }
 }
+
+/// ================= SECTION TITLE =================
+
+class _SectionTitle extends StatelessWidget {
+  final String title;
+
+  const _SectionTitle({
+    required this.title,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Text(
+      title,
+      style: theme.textTheme.titleMedium?.copyWith(
+        color: theme.colorScheme.primary,
+        fontWeight: FontWeight.w700,
+      ),
+    );
+  }
+}
+
+/// ================= STAT CARD =================
 
 class _StatCard extends StatelessWidget {
   final String title;
@@ -189,6 +254,8 @@ class _StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Card(
       elevation: 2,
       margin: const EdgeInsets.only(bottom: 12),
@@ -197,20 +264,28 @@ class _StatCard extends StatelessWidget {
         child: Row(
           children: [
             CircleAvatar(
-              backgroundColor: color.withValues(alpha: 0.15),
-              child: Icon(icon, color: color),
+              backgroundColor:
+              color.withValues(alpha: 0.15),
+              child: Icon(
+                icon,
+                color: color,
+              ),
             ),
+
             const SizedBox(width: 16),
+
             Expanded(
               child: Text(
                 title,
-                style: const TextStyle(fontWeight: FontWeight.w600),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
+
             Text(
               value.toString(),
-              style: TextStyle(
-                fontSize: 20,
+              style: theme.textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: color,
               ),

@@ -15,9 +15,7 @@ class EditProfileScreen extends StatefulWidget {
       _EditProfileScreenState();
 }
 
-class _EditProfileScreenState
-    extends State<EditProfileScreen> {
-
+class _EditProfileScreenState extends State<EditProfileScreen> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
@@ -31,7 +29,6 @@ class _EditProfileScreenState
   /// ================= SAVE PROFILE =================
 
   Future<void> _save() async {
-
     if (!_emailVerified) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -68,7 +65,6 @@ class _EditProfileScreenState
   /// ================= PHONE VERIFY =================
 
   void _verifyPhone() async {
-
     final phone = _phoneController.text.trim();
 
     if (phone.isEmpty) return;
@@ -76,8 +72,7 @@ class _EditProfileScreenState
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) =>
-            PhoneVerifyScreen(phone: phone),
+        builder: (_) => PhoneVerifyScreen(phone: phone),
       ),
     );
 
@@ -91,7 +86,6 @@ class _EditProfileScreenState
   /// ================= EMAIL VERIFY =================
 
   Future<void> _verifyEmail() async {
-
     await AuthService().sendEmailVerification();
 
     if (!mounted) return;
@@ -111,23 +105,19 @@ class _EditProfileScreenState
   /// ================= AUTO EMAIL VERIFICATION CHECK =================
 
   void _startEmailVerificationCheck() async {
-
     final user = FirebaseAuth.instance.currentUser;
 
     if (user == null) return;
 
     while (mounted && !_emailVerified) {
-
       await Future.delayed(const Duration(seconds: 3));
 
       await user.reload();
 
-      final refreshedUser =
-          FirebaseAuth.instance.currentUser;
+      final refreshedUser = FirebaseAuth.instance.currentUser;
 
       if (refreshedUser != null &&
           refreshedUser.emailVerified) {
-
         setState(() {
           _emailVerified = true;
         });
@@ -147,20 +137,20 @@ class _EditProfileScreenState
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     return AppScaffold(
-
       notificationCount: 0,
-
       body: StreamBuilder<DocumentSnapshot>(
-
         stream: ProfileService().profileStream(),
-
         builder: (context, snapshot) {
-
           if (!snapshot.hasData) {
-            return const Center(
-                child: CircularProgressIndicator());
+            return Center(
+              child: CircularProgressIndicator(
+                color: colorScheme.primary,
+              ),
+            );
           }
 
           final data =
@@ -172,7 +162,6 @@ class _EditProfileScreenState
 
           /// initialize only once
           if (!_initialized) {
-
             _nameController.text = data["name"] ?? "";
             _emailController.text = data["email"] ?? "";
             _phoneController.text = data["phone"] ?? "";
@@ -181,16 +170,13 @@ class _EditProfileScreenState
           }
 
           return ListView(
-
             padding: const EdgeInsets.all(16),
-
             children: [
-
-              const Text(
+              Text(
                 "Edit Profile",
-                style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold),
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
               ),
 
               const SizedBox(height: 24),
@@ -212,18 +198,16 @@ class _EditProfileScreenState
               TextField(
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
-
                 decoration: InputDecoration(
                   labelText: "Email",
                   prefixIcon: const Icon(Icons.email),
-
                   suffixIcon: IconButton(
                     icon: Icon(
                       _emailVerified
                           ? Icons.verified
                           : Icons.verified_outlined,
                       color: _emailVerified
-                          ? Colors.green
+                          ? colorScheme.primary
                           : null,
                     ),
                     tooltip: "Verify Email",
@@ -239,25 +223,19 @@ class _EditProfileScreenState
               TextField(
                 controller: _phoneController,
                 keyboardType: TextInputType.phone,
-
                 decoration: InputDecoration(
-
                   labelText: "Phone",
-
-                  prefixIcon:
-                  const Icon(Icons.phone),
-
+                  prefixIcon: const Icon(Icons.phone),
                   suffixIcon: IconButton(
                     icon: Icon(
                       _phoneVerified
                           ? Icons.verified
                           : Icons.verified_outlined,
                       color: _phoneVerified
-                          ? Colors.green
+                          ? colorScheme.primary
                           : null,
                     ),
                     tooltip: "Verify Phone",
-
                     onPressed: _verifyPhone,
                   ),
                 ),
@@ -269,14 +247,12 @@ class _EditProfileScreenState
 
               SizedBox(
                 height: 45,
-
                 child: ElevatedButton(
-
-                  onPressed:
-                  _loading ? null : _save,
-
+                  onPressed: _loading ? null : _save,
                   child: _loading
-                      ? const CircularProgressIndicator()
+                      ? CircularProgressIndicator(
+                    color: colorScheme.onPrimary,
+                  )
                       : const Text("Save Changes"),
                 ),
               ),

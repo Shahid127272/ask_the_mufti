@@ -10,7 +10,6 @@ class DonationFormScreen extends StatefulWidget {
 }
 
 class _DonationFormScreenState extends State<DonationFormScreen> {
-
   final _name = TextEditingController();
   final _email = TextEditingController();
   final _phone = TextEditingController();
@@ -31,8 +30,15 @@ class _DonationFormScreenState extends State<DonationFormScreen> {
     };
   }
 
-  Future<void> _saveDonation(String paymentId) async {
+  @override
+  void dispose() {
+    _name.dispose();
+    _email.dispose();
+    _phone.dispose();
+    super.dispose();
+  }
 
+  Future<void> _saveDonation(String paymentId) async {
     await FirebaseFirestore.instance.collection("donations").add({
       "name": _name.text,
       "email": _email.text,
@@ -46,14 +52,16 @@ class _DonationFormScreenState extends State<DonationFormScreen> {
     if (!mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Donation successful ❤️")),
+      SnackBar(
+        content: const Text("Donation successful ❤️"),
+        backgroundColor: Theme.of(context).colorScheme.primary,
+      ),
     );
 
     Navigator.pop(context);
   }
 
   void _startPayment() {
-
     _razorpay.openCheckout(
       amount: _amount,
       name: _name.text,
@@ -64,31 +72,36 @@ class _DonationFormScreenState extends State<DonationFormScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text("Support Ask The Mufti"),
       ),
-
       body: Padding(
         padding: const EdgeInsets.all(20),
-
         child: Column(
           children: [
-
             TextField(
               controller: _name,
-              decoration: const InputDecoration(labelText: "Name"),
+              decoration: const InputDecoration(
+                labelText: "Name",
+              ),
             ),
 
             TextField(
               controller: _email,
-              decoration: const InputDecoration(labelText: "Email"),
+              decoration: const InputDecoration(
+                labelText: "Email",
+              ),
             ),
 
             TextField(
               controller: _phone,
-              decoration: const InputDecoration(labelText: "Phone"),
+              decoration: const InputDecoration(
+                labelText: "Phone",
+              ),
             ),
 
             const SizedBox(height: 20),
@@ -96,11 +109,9 @@ class _DonationFormScreenState extends State<DonationFormScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-
                 _amountButton(100),
                 _amountButton(500),
                 _amountButton(1000),
-
               ],
             ),
 
@@ -108,18 +119,19 @@ class _DonationFormScreenState extends State<DonationFormScreen> {
 
             Row(
               children: [
-
                 Checkbox(
                   value: _hideName,
-                  onChanged: (v){
+                  onChanged: (v) {
                     setState(() {
-                      _hideName = v!;
+                      _hideName = v ?? false;
                     });
                   },
                 ),
 
-                const Text("Hide my name"),
-
+                Text(
+                  "Hide my name",
+                  style: theme.textTheme.bodyMedium,
+                ),
               ],
             ),
 
@@ -127,13 +139,16 @@ class _DonationFormScreenState extends State<DonationFormScreen> {
 
             SizedBox(
               width: double.infinity,
-
               child: ElevatedButton(
                 onPressed: _startPayment,
-                child: Text("Donate ₹$_amount"),
+                child: Text(
+                  "Donate ₹$_amount",
+                  style: TextStyle(
+                    color: colorScheme.onPrimary,
+                  ),
+                ),
               ),
             ),
-
           ],
         ),
       ),
@@ -141,15 +156,13 @@ class _DonationFormScreenState extends State<DonationFormScreen> {
   }
 
   Widget _amountButton(int value) {
-
     return ElevatedButton(
-      onPressed: (){
+      onPressed: () {
         setState(() {
           _amount = value;
         });
       },
       child: Text("₹$value"),
     );
-
   }
 }

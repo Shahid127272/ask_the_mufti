@@ -1,60 +1,213 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsService {
+  // =========================================================
+  // DEFAULT COLORS
+  // =========================================================
 
-  /// FONT SIZE
-  static Future<double> getFontSize() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getDouble("fontSize") ?? 16;
-  }
+  static const int defaultQuestionColor = 0xFF1565C0;
+  static const int defaultAnswerColor = 0xFF2E7D32;
 
-  static Future<void> setFontSize(double value) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setDouble("fontSize", value);
-  }
+  // =========================================================
+  // STORAGE KEYS
+  // =========================================================
 
-  /// THEME
+  static const String _themeKey = 'theme';
+
+  static const String _questionColorKey =
+      'questionColor';
+
+  static const String _answerColorKey =
+      'answerColor';
+
+  static const String _questionColorSystemKey =
+      'questionColorSystem';
+
+  static const String _answerColorSystemKey =
+      'answerColorSystem';
+
+  // =========================================================
+  // THEME
+  // =========================================================
+
   static Future<String> getTheme() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString("theme") ?? "system";
+    final prefs =
+    await SharedPreferences.getInstance();
+
+    return prefs.getString(
+      _themeKey,
+    ) ??
+        'system';
   }
 
-  static Future<void> setTheme(String value) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString("theme", value);
+  static Future<void> setTheme(
+      String value,
+      ) async {
+    final prefs =
+    await SharedPreferences.getInstance();
+
+    await prefs.setString(
+      _themeKey,
+      value,
+    );
   }
 
-  /// FONT STYLE
-  static Future<String> getFont() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString("font") ?? "Default";
-  }
+  // =========================================================
+  // QUESTION COLOR
+  // =========================================================
 
-  static Future<void> setFont(String value) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString("font", value);
-  }
-
-  /// QUESTION COLOR
+  /// Returns the saved question color.
+  ///
+  /// If System Default is selected, this returns the
+  /// fallback default color. Use [isQuestionColorSystem]
+  /// to determine whether the app should actually use
+  /// the current system/theme color.
   static Future<int> getQuestionColor() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getInt("questionColor") ?? 0xFF1565C0;
+    final prefs =
+    await SharedPreferences.getInstance();
+
+    return prefs.getInt(
+      _questionColorKey,
+    ) ??
+        defaultQuestionColor;
   }
 
-  static Future<void> setQuestionColor(int color) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt("questionColor", color);
+  /// Saves a custom question color.
+  static Future<void> setQuestionColor(
+      int color,
+      ) async {
+    final prefs =
+    await SharedPreferences.getInstance();
+
+    await prefs.setInt(
+      _questionColorKey,
+      color,
+    );
+
+    await prefs.setBool(
+      _questionColorSystemKey,
+      false,
+    );
   }
 
-  /// ANSWER COLOR
+  // =========================================================
+  // QUESTION COLOR — SYSTEM DEFAULT
+  // =========================================================
+
+  static Future<bool> isQuestionColorSystem() async {
+    final prefs =
+    await SharedPreferences.getInstance();
+
+    return prefs.getBool(
+      _questionColorSystemKey,
+    ) ??
+        true;
+  }
+
+  static Future<void> setQuestionColorSystem(
+      bool value,
+      ) async {
+    final prefs =
+    await SharedPreferences.getInstance();
+
+    await prefs.setBool(
+      _questionColorSystemKey,
+      value,
+    );
+  }
+
+  // =========================================================
+  // ANSWER COLOR
+  // =========================================================
+
+  /// Returns the saved answer color.
+  ///
+  /// If System Default is selected, this returns the
+  /// fallback default color. Use [isAnswerColorSystem]
+  /// to determine whether the app should actually use
+  /// the current system/theme color.
   static Future<int> getAnswerColor() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getInt("answerColor") ?? 0xFF2E7D32;
+    final prefs =
+    await SharedPreferences.getInstance();
+
+    return prefs.getInt(
+      _answerColorKey,
+    ) ??
+        defaultAnswerColor;
   }
 
-  static Future<void> setAnswerColor(int color) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt("answerColor", color);
+  /// Saves a custom answer color.
+  static Future<void> setAnswerColor(
+      int color,
+      ) async {
+    final prefs =
+    await SharedPreferences.getInstance();
+
+    await prefs.setInt(
+      _answerColorKey,
+      color,
+    );
+
+    await prefs.setBool(
+      _answerColorSystemKey,
+      false,
+    );
   }
 
+  // =========================================================
+  // ANSWER COLOR — SYSTEM DEFAULT
+  // =========================================================
+
+  static Future<bool> isAnswerColorSystem() async {
+    final prefs =
+    await SharedPreferences.getInstance();
+
+    return prefs.getBool(
+      _answerColorSystemKey,
+    ) ??
+        true;
+  }
+
+  static Future<void> setAnswerColorSystem(
+      bool value,
+      ) async {
+    final prefs =
+    await SharedPreferences.getInstance();
+
+    await prefs.setBool(
+      _answerColorSystemKey,
+      value,
+    );
+  }
+
+  // =========================================================
+  // RESET READING SETTINGS
+  // =========================================================
+
+  static Future<void> resetReadingSettings() async {
+    final prefs =
+    await SharedPreferences.getInstance();
+
+    // System Default
+    await prefs.setBool(
+      _questionColorSystemKey,
+      true,
+    );
+
+    await prefs.setBool(
+      _answerColorSystemKey,
+      true,
+    );
+
+    // Keep fallback values available
+    await prefs.setInt(
+      _questionColorKey,
+      defaultQuestionColor,
+    );
+
+    await prefs.setInt(
+      _answerColorKey,
+      defaultAnswerColor,
+    );
+  }
 }

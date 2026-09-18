@@ -9,33 +9,52 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../features/answer_detail/answer_detail_screen.dart';
+import '../features/notifications/notification_detail_screen.dart';
 import '../features/notifications/notification_model.dart';
 import '../features/notifications/notifications_screen.dart';
 import '../firebase_options.dart';
 import '../models/question_model.dart';
 
 class NotificationService {
-  static final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
-  static final FlutterLocalNotificationsPlugin _localNotifications =
-      FlutterLocalNotificationsPlugin();
-  static final GlobalKey<NavigatorState> navigatorKey =
-      GlobalKey<NavigatorState>();
+  static final FirebaseMessaging _firebaseMessaging =
+      FirebaseMessaging.instance;
 
-  static const AndroidNotificationChannel _channel = AndroidNotificationChannel(
+  static final FlutterLocalNotificationsPlugin
+  _localNotifications =
+  FlutterLocalNotificationsPlugin();
+
+  static final GlobalKey<NavigatorState> navigatorKey =
+  GlobalKey<NavigatorState>();
+
+  static const AndroidNotificationChannel _channel =
+  AndroidNotificationChannel(
     'ask_mufti_channel',
     'Ask The Mufti Notifications',
-    description: 'Notifications for questions and answers',
+    description:
+    'Notifications for questions and answers',
     importance: Importance.high,
+    playSound: true,
+    enableVibration: true,
   );
 
   static bool _initialized = false;
+
   static Map<String, dynamic>? _pendingNavigationData;
+
+  // =========================================================
+  // INITIALIZE
+  // =========================================================
 
   static Future<void> initialize({
     required BackgroundMessageHandler backgroundHandler,
   }) async {
     if (_initialized) return;
 
+    // =======================================================
+    // FIREBASE NOTIFICATION PERMISSION
+    // =======================================================
+
+    final permissionSettings =
     await _firebaseMessaging.requestPermission(
       alert: true,
       badge: true,
@@ -46,81 +65,242 @@ class NotificationService {
       criticalAlert: false,
     );
 
-    await _firebaseMessaging.setForegroundNotificationPresentationOptions(
+    debugPrint(
+      'FCM AUTHORIZATION STATUS = '
+          '${permissionSettings.authorizationStatus}',
+    );
+
+    await _firebaseMessaging
+        .setForegroundNotificationPresentationOptions(
       alert: true,
       badge: true,
       sound: true,
     );
 
-    FirebaseMessaging.onBackgroundMessage(backgroundHandler);
+    // =======================================================
+    // BACKGROUND MESSAGE HANDLER
+    // =======================================================
 
-    const androidInit = AndroidInitializationSettings('@mipmap/launcher_icon');
-    const initSettings = InitializationSettings(android: androidInit);
+    FirebaseMessaging.onBackgroundMessage(
+      backgroundHandler,
+    );
+
+    // =======================================================
+    // LOCAL NOTIFICATIONS INITIALIZATION
+    // =======================================================
+
+    const androidInit =
+    AndroidInitializationSettings(
+      '@mipmap/launcher_icon',
+    );
+
+    const initSettings = InitializationSettings(
+      android: androidInit,
+    );
 
     await _localNotifications.initialize(
       initSettings,
-      onDidReceiveNotificationResponse: (response) {
+      onDidReceiveNotificationResponse:
+          (response) async {
         final payload = response.payload;
-        if (payload == null || payload.isEmpty) return;
+
+        if (payload == null ||
+            payload.isEmpty) {
+          return;
+        }
 
         try {
-          final decoded = jsonDecode(payload);
-          if (decoded is Map<String, dynamic>) {
-            handleNavigation(decoded);
+          final decoded =
+          jsonDecode(payload);
+
+          if (decoded
+          is Map<String, dynamic>) {
+            await _handleLocalNotificationTap(
+              decoded,
+            );
           } else if (decoded is Map) {
-            handleNavigation(Map<String, dynamic>.from(decoded));
+            await _handleLocalNotificationTap(
+              Map<String, dynamic>.from(
+                decoded,
+              ),
+            );
           }
-        } catch (_) {
+        } catch (error) {
+          debugPrint(
+            'Notification payload decode failed: '
+                '$error',
+          );
+
           handleNavigation({});
         }
       },
     );
 
-    await _localNotifications
+    // =======================================================
+    // ANDROID NOTIFICATION CHANNEL
+    // =======================================================
+
+    final androidPlugin =
+    _localNotifications
         .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
-        ?.createNotificationChannel(_channel);
+        AndroidFlutterLocalNotificationsPlugin>();
 
-    FirebaseMessaging.onMessage.listen((message) async {
-      await processIncomingMessage(
-        message,
-        persistIfPossible: true,
-        showLocalNotification: true,
-      );
-    });
+    await androidPlugin
+        ?.createNotificationChannel(
+      _channel,
+    );
 
-    FirebaseMessaging.onMessageOpenedApp.listen((message) async {
-      await processIncomingMessage(
-        message,
-        persistIfPossible: true,
-        showLocalNotification: false,
-      );
-      handleNavigation(message.data);
-    });
+    // Android 13+
+    await androidPlugin
+        ?.requestNotificationsPermission();
 
-    final initialMessage = await _firebaseMessaging.getInitialMessage();
+    // =======================================================
+    // FOREGROUND MESSAGE
+    // =======================================================
+
+    FirebaseMessaging.onMessage.listen(
+          (message) async {
+        debugPrint(
+          '=================================',
+        );
+        debugPrint(
+          'FCM FOREGROUND MESSAGE RECEIVED',
+        );
+        debugPrint(
+          'MESSAGE ID = ${message.messageId}',
+        );
+        debugPrint(
+          'DATA = ${message.data}',
+        );
+        debugPrint(
+          '=================================',
+        );
+
+        await processIncomingMessage(
+          message,
+          persistIfPossible: true,
+          showLocalNotification: true,
+        );
+      },
+    );
+
+    // =======================================================
+    // NOTIFICATION OPENED FROM BACKGROUND
+    // =======================================================
+
+    FirebaseMessaging.onMessageOpenedApp.listen(
+          (message) async {
+        debugPrint(
+          '=================================',
+        );
+        debugPrint(
+          'FCM NOTIFICATION OPENED',
+        );
+        debugPrint(
+          'MESSAGE ID = ${message.messageId}',
+        );
+        debugPrint(
+          'DATA = ${message.data}',
+        );
+        debugPrint(
+          '=================================',
+        );
+
+        await processIncomingMessage(
+          message,
+          persistIfPossible: true,
+          showLocalNotification: false,
+        );
+
+        handleNavigation(
+          Map<String, dynamic>.from(
+            message.data,
+          ),
+        );
+      },
+    );
+
+    // =======================================================
+    // NOTIFICATION OPENED FROM TERMINATED APP
+    // =======================================================
+
+    final initialMessage =
+    await _firebaseMessaging
+        .getInitialMessage();
+
     if (initialMessage != null) {
+      debugPrint(
+        '=================================',
+      );
+      debugPrint(
+        'FCM INITIAL MESSAGE RECEIVED',
+      );
+      debugPrint(
+        'MESSAGE ID = '
+            '${initialMessage.messageId}',
+      );
+      debugPrint(
+        'DATA = ${initialMessage.data}',
+      );
+      debugPrint(
+        '=================================',
+      );
+
       await processIncomingMessage(
         initialMessage,
         persistIfPossible: true,
         showLocalNotification: false,
       );
-      _pendingNavigationData = Map<String, dynamic>.from(initialMessage.data);
+
+      _pendingNavigationData =
+      Map<String, dynamic>.from(
+        initialMessage.data,
+      );
     }
 
     _initialized = true;
+
+    debugPrint(
+      'NotificationService initialized successfully.',
+    );
   }
 
-  static Future<void> handleBackgroundMessage(RemoteMessage message) async {
+  // =========================================================
+  // BACKGROUND MESSAGE
+  // =========================================================
+
+  static Future<void> handleBackgroundMessage(
+      RemoteMessage message,
+      ) async {
     try {
       if (Firebase.apps.isEmpty) {
         await Firebase.initializeApp(
-          options: DefaultFirebaseOptions.currentPlatform,
+          options:
+          DefaultFirebaseOptions.currentPlatform,
         );
       }
     } catch (error) {
-      debugPrint('Background Firebase init failed: $error');
+      debugPrint(
+        'Background Firebase init failed: '
+            '$error',
+      );
     }
+
+    debugPrint(
+      '=================================',
+    );
+    debugPrint(
+      'FCM BACKGROUND MESSAGE RECEIVED',
+    );
+    debugPrint(
+      'MESSAGE ID = ${message.messageId}',
+    );
+    debugPrint(
+      'DATA = ${message.data}',
+    );
+    debugPrint(
+      '=================================',
+    );
 
     await processIncomingMessage(
       message,
@@ -129,171 +309,573 @@ class NotificationService {
     );
   }
 
+  // =========================================================
+  // PROCESS INCOMING MESSAGE
+  // =========================================================
+
   static Future<void> processIncomingMessage(
-    RemoteMessage message, {
-    required bool persistIfPossible,
-    required bool showLocalNotification,
-  }) async {
-    final prefs = await SharedPreferences.getInstance();
-    final type = message.data['type']?.toString() ?? '';
+      RemoteMessage message, {
+        required bool persistIfPossible,
+        required bool showLocalNotification,
+      }) async {
+    final prefs =
+    await SharedPreferences.getInstance();
 
-    final questionAlerts = prefs.getBool('question_alerts') ?? true;
-    final answerAlerts = prefs.getBool('answer_alerts') ?? true;
-    final adminMessages = prefs.getBool('admin_messages') ?? true;
+    final type =
+        message.data['type']?.toString() ?? '';
 
-    if (type == 'question' && !questionAlerts) return;
-    if (type == 'answer' && !answerAlerts) return;
-    if (type == 'admin' && !adminMessages) return;
+    final questionAlerts =
+        prefs.getBool('question_alerts') ??
+            true;
+
+    final answerAlerts =
+        prefs.getBool('answer_alerts') ??
+            true;
+
+    final adminMessages =
+        prefs.getBool('admin_messages') ??
+            true;
+
+    if (type == 'question' &&
+        !questionAlerts) {
+      return;
+    }
+
+    if (type == 'answer' &&
+        !answerAlerts) {
+      return;
+    }
+
+    if (type == 'admin' &&
+        !adminMessages) {
+      return;
+    }
 
     if (persistIfPossible) {
       await _persistMessage(message);
     }
 
-    if (!showLocalNotification) return;
+    if (!showLocalNotification) {
+      return;
+    }
 
-    final notification = message.notification;
-    final title = notification?.title ?? message.data['title']?.toString() ?? 'Notification';
-    final body = notification?.body ?? message.data['body']?.toString() ?? '';
+    final notification =
+        message.notification;
 
-    await _showNotification(title, body, message.data);
+    final title =
+        notification?.title ??
+            message.data['title']
+                ?.toString() ??
+            'Notification';
+
+    final body =
+        notification?.body ??
+            message.data['body']
+                ?.toString() ??
+            '';
+
+    await _showNotification(
+      title,
+      body,
+      message.data,
+    );
   }
 
-  static Future<void> _persistMessage(RemoteMessage message) async {
-    final userId = _resolveTargetUserId(message.data);
-    if (userId == null || userId.isEmpty) return;
+  // =========================================================
+  // SAVE NOTIFICATION TO FIRESTORE
+  // =========================================================
 
-    final notification = message.notification;
-    final docId = message.data['notificationId']?.toString() ??
-        message.messageId ??
-        '${userId}_${message.sentTime?.millisecondsSinceEpoch ?? DateTime.now().millisecondsSinceEpoch}';
+  static Future<void> _persistMessage(
+      RemoteMessage message,
+      ) async {
+    final userId =
+    _resolveTargetUserId(
+      message.data,
+    );
+
+    if (userId == null ||
+        userId.isEmpty) {
+      return;
+    }
+
+    final notification =
+        message.notification;
+
+    final docId =
+        message.data['notificationId']
+            ?.toString() ??
+            message.messageId ??
+            '${userId}_'
+                '${message.sentTime?.millisecondsSinceEpoch ?? DateTime.now().millisecondsSinceEpoch}';
 
     try {
       await FirebaseFirestore.instance
           .collection('notifications')
           .doc(docId)
-          .set({
-        'userId': userId,
-        'title': notification?.title ?? message.data['title']?.toString() ?? '',
-        'message': notification?.body ?? message.data['body']?.toString() ?? '',
-        'time': FieldValue.serverTimestamp(),
-        'isRead': false,
-        'type': message.data['type']?.toString() ?? 'general',
-        'questionId': message.data['questionId']?.toString(),
-        'route': message.data['route']?.toString(),
-        'messageId': message.messageId ?? docId,
-        'notificationId': docId,
-      }, SetOptions(merge: true));
+          .set(
+        {
+          'userId': userId,
+          'title':
+          notification?.title ??
+              message.data['title']
+                  ?.toString() ??
+              '',
+          'message':
+          notification?.body ??
+              message.data['body']
+                  ?.toString() ??
+              '',
+          'time':
+          FieldValue.serverTimestamp(),
+          'isRead': false,
+          'type':
+          message.data['type']
+              ?.toString() ??
+              'general',
+          'questionId':
+          message.data['questionId']
+              ?.toString(),
+          'route':
+          message.data['route']
+              ?.toString(),
+          'messageId':
+          message.messageId ?? docId,
+          'notificationId': docId,
+        },
+        SetOptions(merge: true),
+      );
     } catch (error) {
-      debugPrint('Notification persistence failed: $error');
+      debugPrint(
+        'Notification persistence failed: '
+            '$error',
+      );
     }
   }
 
-  static String? _resolveTargetUserId(Map<String, dynamic> data) {
-    return data['userId']?.toString() ?? FirebaseAuth.instance.currentUser?.uid;
+  // =========================================================
+  // RESOLVE TARGET USER
+  // =========================================================
+
+  static String? _resolveTargetUserId(
+      Map<String, dynamic> data,
+      ) {
+    return data['userId']?.toString() ??
+        FirebaseAuth.instance.currentUser?.uid;
   }
 
-  static Future<void> handleNotificationTap(NotificationModel notification) async {
-    await FirebaseFirestore.instance
-        .collection('notifications')
-        .doc(notification.id)
-        .set({'isRead': true}, SetOptions(merge: true));
+  // =========================================================
+  // NOTIFICATION TAP FROM NOTIFICATION LIST
+  // =========================================================
+
+  static Future<void> handleNotificationTap(
+      NotificationModel notification,
+      ) async {
+    // Notification ko read mark karo.
+    try {
+      await FirebaseFirestore.instance
+          .collection('notifications')
+          .doc(notification.id)
+          .set(
+        {'isRead': true},
+        SetOptions(merge: true),
+      );
+    } catch (error) {
+      debugPrint(
+        'Notification read update failed: '
+            '$error',
+      );
+    }
+
+    // -------------------------------------------------------
+    // IMPORTANT:
+    // Har notification ka full message pehle open hoga.
+    // Answer notification ke andar "Open Answer" button
+    // available rahega.
+    // -------------------------------------------------------
+
+    await _openNotificationDetail(
+      notification,
+    );
+  }
+
+  // =========================================================
+  // OPEN NOTIFICATION DETAIL
+  // =========================================================
+
+  static Future<void> _openNotificationDetail(
+      NotificationModel notification,
+      ) async {
+    final navigator =
+        navigatorKey.currentState;
+
+    if (navigator == null) {
+      _pendingNavigationData = {
+        'type': 'notification',
+        'notificationId':
+        notification.id,
+      };
+
+      return;
+    }
+
+    await navigator.push(
+      MaterialPageRoute(
+        builder: (_) =>
+            NotificationDetailScreen(
+              notification: notification,
+            ),
+      ),
+    );
+  }
+
+  // =========================================================
+  // LOCAL NOTIFICATION TAP
+  // =========================================================
+
+  static Future<void>
+  _handleLocalNotificationTap(
+      Map<String, dynamic> data,
+      ) async {
+    final type =
+    data['type']?.toString();
+
+    final questionId =
+    data['questionId']?.toString();
+
+    final notificationId =
+    data['notificationId']?.toString();
+
+    // -------------------------------------------------------
+    // Agar Firestore notification ID available hai,
+    // to actual saved notification open karo.
+    // -------------------------------------------------------
+
+    if (notificationId != null &&
+        notificationId.isNotEmpty) {
+      final doc =
+      await FirebaseFirestore.instance
+          .collection('notifications')
+          .doc(notificationId)
+          .get();
+
+      if (doc.exists) {
+        final notification =
+        NotificationModel
+            .fromFirestore(doc);
+
+        await handleNotificationTap(
+          notification,
+        );
+
+        return;
+      }
+    }
+
+    // -------------------------------------------------------
+    // Agar notification Firestore mein nahi mili,
+    // to direct navigation fallback.
+    // -------------------------------------------------------
 
     handleNavigation({
-      'type': notification.type,
-      'questionId': notification.questionId,
-      'route': notification.route,
+      'type': type,
+      'questionId': questionId,
+      'route':
+      data['route']?.toString(),
     });
   }
 
+  // =========================================================
+  // PENDING NAVIGATION
+  // =========================================================
+
   static void consumePendingNavigation() {
-    if (_pendingNavigationData == null) return;
-    final data = Map<String, dynamic>.from(_pendingNavigationData!);
+    if (_pendingNavigationData ==
+        null) {
+      return;
+    }
+
+    final data =
+    Map<String, dynamic>.from(
+      _pendingNavigationData!,
+    );
+
     _pendingNavigationData = null;
+
     handleNavigation(data);
   }
 
-  static void handleNavigation(Map<String, dynamic> data) {
-    final navigator = navigatorKey.currentState;
+  // =========================================================
+  // NAVIGATION
+  // =========================================================
+
+  static void handleNavigation(
+      Map<String, dynamic> data,
+      ) {
+    final navigator =
+        navigatorKey.currentState;
+
     if (navigator == null) {
       _pendingNavigationData = data;
       return;
     }
 
-    final type = data['type']?.toString();
-    final route = data['route']?.toString();
-    final questionId = data['questionId']?.toString();
+    final type =
+    data['type']?.toString();
 
-    if (questionId != null && questionId.isNotEmpty && type == 'answer') {
-      _openAnswerDetail(questionId);
-      return;
-    }
+    final route =
+    data['route']?.toString();
 
-    if (route == '/notifications' || type == 'admin') {
-      navigator.push(
-        MaterialPageRoute(builder: (_) => const NotificationsScreen()),
+    final questionId =
+    data['questionId']?.toString();
+
+    final notificationId =
+    data['notificationId']
+        ?.toString();
+
+    // -------------------------------------------------------
+    // If this is a saved notification and we have its ID,
+    // open the complete notification message.
+    // -------------------------------------------------------
+
+    if (notificationId != null &&
+        notificationId.isNotEmpty) {
+      _openNotificationById(
+        notificationId,
       );
+
       return;
     }
 
-    navigator.pushNamed('/notifications');
+    // -------------------------------------------------------
+    // Answer notification with question ID
+    // -------------------------------------------------------
+
+    if (questionId != null &&
+        questionId.isNotEmpty &&
+        (type == 'answer' ||
+            route == '/answerDetail')) {
+      _openAnswerDetail(
+        questionId,
+      );
+
+      return;
+    }
+
+    // -------------------------------------------------------
+    // Notification screen
+    // -------------------------------------------------------
+
+    if (route == '/notifications' ||
+        type == 'admin' ||
+        type == 'question' ||
+        type == 'notification') {
+      navigator.push(
+        MaterialPageRoute(
+          builder: (_) =>
+          const NotificationsScreen(),
+        ),
+      );
+
+      return;
+    }
+
+    navigator.pushNamed(
+      '/notifications',
+    );
   }
 
-  static Future<void> _openAnswerDetail(String questionId) async {
-    final navigator = navigatorKey.currentState;
-    final context = navigatorKey.currentContext;
-    if (navigator == null || context == null) {
+  // =========================================================
+  // OPEN NOTIFICATION BY ID
+  // =========================================================
+
+  static Future<void>
+  _openNotificationById(
+      String notificationId,
+      ) async {
+    final navigator =
+        navigatorKey.currentState;
+
+    if (navigator == null) {
+      _pendingNavigationData = {
+        'type': 'notification',
+        'notificationId':
+        notificationId,
+      };
+
+      return;
+    }
+
+    try {
+      final doc =
+      await FirebaseFirestore.instance
+          .collection('notifications')
+          .doc(notificationId)
+          .get();
+
+      if (!doc.exists) {
+        navigator.push(
+          MaterialPageRoute(
+            builder: (_) =>
+            const NotificationsScreen(),
+          ),
+        );
+
+        return;
+      }
+
+      final notification =
+      NotificationModel.fromFirestore(
+        doc,
+      );
+
+      await handleNotificationTap(
+        notification,
+      );
+    } catch (error) {
+      debugPrint(
+        'Opening notification failed: '
+            '$error',
+      );
+
+      navigator.push(
+        MaterialPageRoute(
+          builder: (_) =>
+          const NotificationsScreen(),
+        ),
+      );
+    }
+  }
+
+  // =========================================================
+  // OPEN ANSWER FROM NOTIFICATION DETAIL
+  // =========================================================
+
+  static Future<void>
+  openAnswerFromNotification(
+      String questionId,
+      ) async {
+    await _openAnswerDetail(
+      questionId,
+    );
+  }
+
+  // =========================================================
+  // OPEN ANSWER DETAIL
+  // =========================================================
+
+  static Future<void> _openAnswerDetail(
+      String questionId,
+      ) async {
+    final navigator =
+        navigatorKey.currentState;
+
+    final context =
+        navigatorKey.currentContext;
+
+    if (navigator == null ||
+        context == null) {
       _pendingNavigationData = {
         'type': 'answer',
         'questionId': questionId,
       };
+
       return;
     }
 
-    final doc = await FirebaseFirestore.instance
-        .collection('questions')
-        .doc(questionId)
-        .get();
+    try {
+      final doc =
+      await FirebaseFirestore.instance
+          .collection('questions')
+          .doc(questionId)
+          .get();
 
-    if (!doc.exists) {
-      navigator.push(
-        MaterialPageRoute(builder: (_) => const NotificationsScreen()),
+      if (!doc.exists) {
+        navigator.push(
+          MaterialPageRoute(
+            builder: (_) =>
+            const NotificationsScreen(),
+          ),
+        );
+
+        return;
+      }
+
+      final question =
+      QuestionModel.fromFirestore(
+        doc,
       );
-      return;
-    }
 
-    final question = QuestionModel.fromFirestore(doc);
-    navigator.push(
-      MaterialPageRoute(
-        builder: (_) => AnswerDetailScreen(question: question),
-      ),
-    );
+      await navigator.push(
+        MaterialPageRoute(
+          builder: (_) =>
+              AnswerDetailScreen(
+                question: question,
+              ),
+        ),
+      );
+    } catch (error) {
+      debugPrint(
+        'Opening answer detail failed: '
+            '$error',
+      );
+
+      navigator.push(
+        MaterialPageRoute(
+          builder: (_) =>
+          const NotificationsScreen(),
+        ),
+      );
+    }
   }
+
+  // =========================================================
+  // PUBLIC SHOW NOTIFICATION
+  // =========================================================
 
   static Future<void> showNotification({
     required String title,
     required String body,
-    Map<String, dynamic> data = const {},
+    Map<String, dynamic> data =
+    const {},
   }) async {
-    await _showNotification(title, body, data);
+    await _showNotification(
+      title,
+      body,
+      data,
+    );
   }
 
+  // =========================================================
+  // SHOW LOCAL NOTIFICATION
+  // =========================================================
+
   static Future<void> _showNotification(
-    String title,
-    String body,
-    Map<String, dynamic> data,
-  ) async {
-    const androidDetails = AndroidNotificationDetails(
+      String title,
+      String body,
+      Map<String, dynamic> data,
+      ) async {
+    const androidDetails =
+    AndroidNotificationDetails(
       'ask_mufti_channel',
       'Ask The Mufti Notifications',
-      channelDescription: 'Notifications for questions and answers',
+      channelDescription:
+      'Notifications for questions and answers',
       importance: Importance.max,
       priority: Priority.high,
+      playSound: true,
+      enableVibration: true,
+      icon: '@mipmap/launcher_icon',
     );
 
-    const details = NotificationDetails(android: androidDetails);
+    const details =
+    NotificationDetails(
+      android: androidDetails,
+    );
 
     await _localNotifications.show(
-      DateTime.now().millisecondsSinceEpoch ~/ 1000,
+      DateTime.now()
+          .millisecondsSinceEpoch ~/
+          1000,
       title,
       body,
       details,
@@ -301,7 +883,13 @@ class NotificationService {
     );
   }
 
-  static Future<String?> getDeviceToken() async {
-    return _firebaseMessaging.getToken();
+  // =========================================================
+  // DEVICE TOKEN
+  // =========================================================
+
+  static Future<String?>
+  getDeviceToken() async {
+    return _firebaseMessaging
+        .getToken();
   }
 }

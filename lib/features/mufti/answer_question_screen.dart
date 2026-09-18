@@ -10,6 +10,7 @@ import 'package:provider/provider.dart';
 import '../../core/categories_data.dart';
 import '../../core/role_view_controller.dart';
 import '../../models/question_model.dart';
+import '../../providers/font_provider.dart';
 import '../../services/questions_firestore_service.dart';
 
 class AnswerQuestionScreen extends StatefulWidget {
@@ -27,7 +28,6 @@ class AnswerQuestionScreen extends StatefulWidget {
 
 class _AnswerQuestionScreenState
     extends State<AnswerQuestionScreen> {
-
   final _questionController =
   TextEditingController();
 
@@ -103,13 +103,6 @@ class _AnswerQuestionScreenState
   // =========================================================
   // LIVE QUESTION / CLAIM LISTENER
   // =========================================================
-  //
-  // Agar kisi doosre Mufti ne question CLAIM kiya,
-  // to isi screen par bhi immediately CLAIMED show hoga.
-  //
-  // Agar claim unclaim hua,
-  // to CLAIM dobara show hoga.
-  // =========================================================
 
   void _startQuestionListener() {
     _questionSubscription =
@@ -147,15 +140,6 @@ class _AnswerQuestionScreenState
 
   // =========================================================
   // NEW → PENDING
-  // =========================================================
-  //
-  // Question open karne se sirf:
-  //
-  // NEW → PENDING
-  //
-  // hoga.
-  //
-  // OPEN karne wale Mufti ko CLAIM automatically nahi milega.
   // =========================================================
 
   Future<void> _prepareQuestion() async {
@@ -633,6 +617,9 @@ class _AnswerQuestionScreenState
   Widget _buildClaimSection({
     required bool isOwnerOrAdmin,
   }) {
+    final theme =
+    Theme.of(context);
+
     if (isOwnerOrAdmin) {
       return const SizedBox.shrink();
     }
@@ -647,8 +634,11 @@ class _AnswerQuestionScreenState
         width: double.infinity,
         padding:
         const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: Colors.grey
+        decoration:
+        BoxDecoration(
+          color: theme
+              .colorScheme
+              .surfaceContainerHighest
               .withValues(alpha: 0.12),
           borderRadius:
           BorderRadius.circular(10),
@@ -659,9 +649,7 @@ class _AnswerQuestionScreenState
               Icons.lock_outline,
               size: 20,
             ),
-
             const SizedBox(width: 8),
-
             const Expanded(
               child: Text(
                 'CLAIMED',
@@ -692,7 +680,9 @@ class _AnswerQuestionScreenState
             const EdgeInsets.all(12),
             decoration:
             BoxDecoration(
-              color: Colors.green
+              color: theme
+                  .colorScheme
+                  .primary
                   .withValues(
                 alpha: 0.10,
               ),
@@ -701,13 +691,12 @@ class _AnswerQuestionScreenState
             ),
             child: Row(
               children: [
-                const Icon(
+                Icon(
                   Icons.check_circle,
-                  color: Colors.green,
+                  color:
+                  theme.colorScheme.primary,
                 ),
-
                 const SizedBox(width: 8),
-
                 const Expanded(
                   child: Text(
                     'Question Claimed',
@@ -720,22 +709,17 @@ class _AnswerQuestionScreenState
               ],
             ),
           ),
-
           const SizedBox(height: 8),
-
           if (_claimExpiresAt != null)
             Text(
               _claimExpiryText(),
-              style:
-              const TextStyle(
+              style: TextStyle(
                 fontSize: 12,
                 color:
-                Colors.orange,
+                theme.colorScheme.tertiary,
               ),
             ),
-
           const SizedBox(height: 12),
-
           OutlinedButton.icon(
             onPressed:
             _unclaiming ||
@@ -779,14 +763,15 @@ class _AnswerQuestionScreenState
             : _claimQuestion,
         icon:
         _claiming
-            ? const SizedBox(
+            ? SizedBox(
           width: 18,
           height: 18,
           child:
           CircularProgressIndicator(
             strokeWidth: 2,
-            color:
-            Colors.white,
+            color: theme
+                .colorScheme
+                .onPrimary,
           ),
         )
             : const Icon(
@@ -846,12 +831,18 @@ class _AnswerQuestionScreenState
     context.watch<
         RoleViewController>();
 
+    final fonts =
+    context.watch<FontProvider>();
+
     final realRole =
         roleController.realRole;
 
     final isOwnerOrAdmin =
         realRole == 'owner' ||
             realRole == 'admin';
+
+    final theme =
+    Theme.of(context);
 
     final canMuftiUseOpportunity =
     !widget.question
@@ -861,31 +852,58 @@ class _AnswerQuestionScreenState
         isOwnerOrAdmin ||
             canMuftiUseOpportunity;
 
+    final questionTextStyle =
+    TextStyle(
+      fontFamily:
+      fonts.resolveFontFamily(
+        fonts.questionFont,
+      ),
+      fontSize:
+      fonts.fontSize,
+      fontWeight:
+      fonts.fontWeight,
+      fontStyle:
+      fonts.isItalic
+          ? FontStyle.italic
+          : FontStyle.normal,
+    );
+
+    final answerTextStyle =
+    TextStyle(
+      fontFamily:
+      fonts.resolveFontFamily(
+        fonts.answerFont,
+      ),
+      fontSize:
+      fonts.fontSize,
+      fontWeight:
+      fonts.fontWeight,
+      fontStyle:
+      fonts.isItalic
+          ? FontStyle.italic
+          : FontStyle.normal,
+    );
+
     return Scaffold(
       appBar: AppBar(
         title: const Text(
           'Write Answer',
         ),
       ),
-
       body:
       SingleChildScrollView(
         padding:
         const EdgeInsets.all(16),
-
         child: Column(
           crossAxisAlignment:
           CrossAxisAlignment.start,
-
           children: [
-
             // =================================================
             // NEW → PENDING LOADING
             // =================================================
 
             if (_markingPending) ...[
               const LinearProgressIndicator(),
-
               const SizedBox(
                 height: 16,
               ),
@@ -924,24 +942,21 @@ class _AnswerQuestionScreenState
             TextField(
               controller:
               _questionController,
-
               readOnly:
               !canEditQuestion,
-
               maxLines: null,
-
+              style:
+              questionTextStyle,
               decoration:
               InputDecoration(
                 border:
                 const OutlineInputBorder(),
-
                 helperText:
                 isOwnerOrAdmin
                     ? 'Owner/Admin sawal edit kar sakte hain'
                     : canMuftiUseOpportunity
                     ? 'Sirf answer publish karte waqt sawal edit kar sakte hain'
                     : 'Mufti ka edit mauqa khatam ho chuka hai',
-
                 suffixIcon:
                 canEditQuestion
                     ? const Icon(
@@ -977,7 +992,8 @@ class _AnswerQuestionScreenState
             TextField(
               controller:
               _subjectController,
-
+              style:
+              answerTextStyle,
               decoration:
               const InputDecoration(
                 border:
@@ -1009,9 +1025,9 @@ class _AnswerQuestionScreenState
             TextField(
               controller:
               _bodyController,
-
               maxLines: 6,
-
+              style:
+              answerTextStyle,
               decoration:
               const InputDecoration(
                 border:
@@ -1043,9 +1059,9 @@ class _AnswerQuestionScreenState
             TextField(
               controller:
               _referenceController,
-
               maxLines: null,
-
+              style:
+              answerTextStyle,
               decoration:
               const InputDecoration(
                 border:
@@ -1077,7 +1093,6 @@ class _AnswerQuestionScreenState
             DropdownButtonFormField<String>(
               initialValue:
               _category,
-
               items:
               kCategories.keys
                   .map(
@@ -1093,7 +1108,6 @@ class _AnswerQuestionScreenState
                   );
                 },
               ).toList(),
-
               onChanged:
               _loading
                   ? null
@@ -1106,7 +1120,6 @@ class _AnswerQuestionScreenState
                   null;
                 });
               },
-
               decoration:
               const InputDecoration(
                 border:
@@ -1140,10 +1153,8 @@ class _AnswerQuestionScreenState
               ValueKey(
                 _category,
               ),
-
               initialValue:
               _subCategory,
-
               items:
               _category == null
                   ? const <
@@ -1166,7 +1177,6 @@ class _AnswerQuestionScreenState
                     ),
               )
                   .toList(),
-
               onChanged:
               _loading ||
                   _category ==
@@ -1178,7 +1188,6 @@ class _AnswerQuestionScreenState
                       value;
                 });
               },
-
               decoration:
               const InputDecoration(
                 border:
@@ -1201,22 +1210,18 @@ class _AnswerQuestionScreenState
                   _loading
                       ? null
                       : _pickImage,
-
                   icon:
                   const Icon(
                     Icons.image,
                   ),
-
                   label:
                   const Text(
                     'Upload Image',
                   ),
                 ),
-
                 const SizedBox(
                   width: 12,
                 ),
-
                 if (_image != null)
                   const Expanded(
                     child: Text(
@@ -1254,7 +1259,9 @@ class _AnswerQuestionScreenState
                 ),
                 decoration:
                 BoxDecoration(
-                  color: Colors.orange
+                  color: theme
+                      .colorScheme
+                      .tertiary
                       .withValues(
                     alpha: 0.10,
                   ),
@@ -1279,12 +1286,10 @@ class _AnswerQuestionScreenState
               SizedBox(
                 width:
                 double.infinity,
-
                 child:
                 ElevatedButton(
                   onPressed:
                   _submit,
-
                   child:
                   const Text(
                     'Publish',
